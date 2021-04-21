@@ -55,6 +55,39 @@ private:
 	int _timeUntilNextFrame;
 	static const double VOLUME_GRADIENT;
 
+#ifdef VITA
+    void HandleControllerAxisEvent(const SDL_JoyAxisEvent &motion);
+    void HandleControllerButtonEvent(const SDL_JoyButtonEvent &button);
+    void ProcessControllerAxisMotion();
+	void ActivateAction(SDL_Event ev);
+
+    enum
+    {
+        CONTROLLER_L_DEADZONE = 3000,
+        CONTROLLER_R_DEADZONE = 25000
+    };
+
+    // used to convert user-friendly pointer speed values into more useable ones
+    const double CONTROLLER_SPEED_MOD = 2000000.0;
+    double controllerPointerSpeed = 10.0 / CONTROLLER_SPEED_MOD;
+
+    // bigger value correndsponds to faster pointer movement speed with bigger stick axis values
+    const double CONTROLLER_AXIS_SPEEDUP = 1.03;
+
+    SDL_Joystick *gameController = nullptr;
+    int16_t controllerLeftXAxis = 0;
+    int16_t controllerLeftYAxis = 0;
+    int16_t controllerRightXAxis = 0;
+    int16_t controllerRightYAxis = 0;
+	uint32_t lastControllerTime = 0;
+	float pointerPosX = 0;
+	float pointerPosY = 0;
+	bool leftScrollActive = false;
+	bool rightScrollActive = false;
+	bool upScrollActive = false;
+	bool downScrollActive = false;
+#endif
+
 public:
 	/// Creates a new game and initializes SDL.
 	Game(const std::string &title);

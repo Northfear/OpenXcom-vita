@@ -167,6 +167,7 @@ void SavedBattleGame::load(const YAML::Node &node, Mod *mod, SavedGame* savedGam
 
 		while (r < dataEnd)
 		{
+			//crash on Vita here due to tileIndexSize being 0 (all of the hex size values are read as 0)
 			int index = unserializeInt(&r, serKey.index);
 			assert (index >= 0 && index < _mapsize_x * _mapsize_z * _mapsize_y);
 			_tiles[index]->loadBinary(r, serKey); // loadBinary's privileges to advance *r have been revoked
@@ -403,7 +404,8 @@ YAML::Node SavedBattleGame::save() const
 	{
 		node["mapdatasets"].push_back((*i)->getName());
 	}
-#if 0
+//field sizes are always read as 0's on Vita. YAML problem? Fallback to text tiles..
+#if defined (VITA)
 	for (int i = 0; i < _mapsize_z * _mapsize_y * _mapsize_x; ++i)
 	{
 		if (!_tiles[i]->isVoid())

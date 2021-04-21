@@ -41,6 +41,10 @@
 #include "Unicode.h"
 #include "../Menu/TestState.h"
 
+#ifdef VITA
+#include "SDL12GamepadMappings.h"
+#endif
+
 namespace OpenXcom
 {
 
@@ -74,6 +78,21 @@ Game::Game(const std::string &title) : _screen(0), _cursor(0), _lang(0), _save(0
 	{
 		initAudio();
 	}
+
+#ifdef VITA
+	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
+	{
+		Log(LOG_ERROR) << "Joystick init failed.";
+	}
+	else
+	{
+		if (SDL_NumJoysticks() > 0)
+		{
+			gameController = SDL_JoystickOpen(0);
+		}
+	}
+	//controllerPointerSpeed = Options::controllerPointerSpeed / CONTROLLER_SPEED_MOD * (static_cast<float>(Options::displayHeight) / Screen::VITA_HEIGHT);
+#endif
 
 	// trap the mouse inside the window
 	SDL_WM_GrabInput(Options::captureMouse);
@@ -120,6 +139,13 @@ Game::~Game()
 	{
 		delete *i;
 	}
+
+#ifdef VITA
+	if (gameController != nullptr)
+	{
+ 		SDL_JoystickClose(gameController);
+	}
+#endif
 
 	SDL_FreeCursor(SDL_GetCursor());
 
@@ -168,6 +194,10 @@ void Game::run()
 			// Refresh mouse position
 			SDL_Event ev;
 			int x, y;
+#ifdef VITA
+			x = pointerPosX;
+			y = pointerPosY;
+#endif
 			SDL_GetMouseState(&x, &y);
 			ev.type = SDL_MOUSEMOTION;
 			ev.motion.x = x;
@@ -250,6 +280,20 @@ void Game::run()
 					// re-gain focus on mouse-over or keypress.
 					runningState = RUNNING;
 					// Go on, feed the event to others
+#ifdef VITA
+					if (_event.type == SDL_MOUSEMOTION)
+					{
+						pointerPosX = _event.motion.x;
+						pointerPosY = _event.motion.y;
+					}
+				case SDL_JOYAXISMOTION:
+					if (_event.type == SDL_JOYAXISMOTION)
+						HandleControllerAxisEvent(_event.jaxis);
+				case SDL_JOYBUTTONDOWN:
+				case SDL_JOYBUTTONUP:
+					if (_event.type == SDL_JOYBUTTONDOWN || _event.type == SDL_JOYBUTTONUP)
+						HandleControllerButtonEvent(_event.jbutton);
+#endif
 				default:
 					Action action = Action(&_event, _screen->getXScale(), _screen->getYScale(), _screen->getCursorTopBlackBand(), _screen->getCursorLeftBlackBand());
 					_screen->handle(&action);
@@ -287,7 +331,10 @@ void Game::run()
 				break;
 			}
 		}
-		
+
+#ifdef VITA
+		ProcessControllerAxisMotion();
+#endif
 		// Process rendering
 		if (runningState != PAUSED)
 		{
@@ -342,6 +389,256 @@ void Game::run()
 
 	Options::save();
 }
+
+#ifdef VITA
+void Game::ActivateAction(SDL_Event ev)
+{
+	Action action = Action(&ev, _screen->getXScale(), _screen->getYScale(), _screen->getCursorTopBlackBand(), _screen->getCursorLeftBlackBand());
+	_screen->handle(&action);
+	_cursor->handle(&action);
+	_fpsCounter->handle(&action);
+	_states.back()->handle(&action);
+}
+
+void Game::HandleControllerAxisEvent(const SDL_JoyAxisEvent &motion)
+{
+    if (motion.axis == SDL_CONTROLLER_AXIS_LEFTX)
+	{
+        if (std::abs(motion.value) > CONTROLLER_L_DEADZONE)
+            controllerLeftXAxis = motion.value;
+        else
+            controllerLeftXAxis = 0;
+    }
+    else if (motion.axis == SDL_CONTROLLER_AXIS_LEFTY)
+	{
+        if (std::abs(motion.value) > CONTROLLER_L_DEADZONE)
+            controllerLeftYAxis = motion.value;
+        else
+            controllerLeftYAxis = 0;
+    }
+    else if (motion.axis == SDL_CONTROLLER_AXIS_RIGHTX)
+	{
+        if (std::abs(motion.value) > CONTROLLER_R_DEADZONE)
+            controllerRightXAxis = motion.value;
+        else
+            controllerRightXAxis = 0;
+    }
+    else if (motion.axis == SDL_CONTROLLER_AXIS_RIGHTY)
+	{
+        if (std::abs(motion.value) > CONTROLLER_R_DEADZONE)
+            controllerRightYAxis = motion.value;
+        else
+            controllerRightYAxis = 0;
+    }
+}
+
+void Game::HandleControllerButtonEvent(const SDL_JoyButtonEvent &button)
+{
+	bool activateAction = true;
+	SDL_Event ev;
+
+	if (button.button == SDL_CONTROLLER_BUTTON_A || button.button == SDL_CONTROLLER_BUTTON_B)
+	{
+		if (button.state == SDL_PRESSED)
+			ev.type = SDL_MOUSEBUTTONDOWN;
+		else if (button.state == SDL_RELEASED)
+			ev.type = SDL_MOUSEBUTTONUP;
+
+		ev.button.state = button.state;
+		ev.button.x = pointerPosX;
+		ev.button.y = pointerPosY;
+		ev.button.button = button.button == SDL_CONTROLLER_BUTTON_A ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT;
+	}
+	else 
+	{
+		if (button.state == SDL_PRESSED)
+			ev.type = SDL_KEYDOWN;
+		else if (button.state == SDL_RELEASED)
+			ev.type = SDL_KEYUP;
+
+		ev.key.state = button.state;
+		ev.key.keysym.mod = KMOD_NONE;
+
+		if (button.button == SDL_CONTROLLER_BUTTON_START)
+		{
+			ev.key.keysym.sym = SDLK_BACKSPACE;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_BACK)
+		{
+			ev.key.keysym.sym = SDLK_ESCAPE;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
+		{
+			ev.key.keysym.sym = SDLK_PAGEUP;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
+		{
+			ev.key.keysym.sym = SDLK_PAGEDOWN;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
+		{
+			ev.key.keysym.sym = SDLK_LSHIFT;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+		{
+			ev.key.keysym.sym = SDLK_TAB;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_Y)
+		{
+			ev.key.keysym.sym = SDLK_i;
+		} 
+		else if (button.button == SDL_CONTROLLER_BUTTON_X)
+		{
+			ev.key.keysym.sym = SDLK_m;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
+		{
+			ev.key.keysym.sym = SDLK_q;
+		}
+		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
+		{
+			ev.key.keysym.sym = SDLK_e;
+		}
+		else
+		{
+			activateAction = false;
+		}
+	}
+
+	if (activateAction)
+		ActivateAction(ev);
+}
+
+void Game::ProcessControllerAxisMotion()
+{
+	const uint32_t currentTime = SDL_GetTicks();
+	const uint32_t deltaTime = currentTime - lastControllerTime;
+	lastControllerTime = currentTime;
+
+	if (controllerLeftXAxis != 0 || controllerLeftYAxis != 0)
+	{
+		const int16_t xSign = (controllerLeftXAxis > 0) - (controllerLeftXAxis < 0);
+		const int16_t ySign = (controllerLeftYAxis > 0) - (controllerLeftYAxis < 0);
+
+		controllerPointerSpeed = Options::controllerPointerSpeed / CONTROLLER_SPEED_MOD * (static_cast<float>(Options::displayHeight) / Screen::VITA_HEIGHT);
+		pointerPosX += pow(std::abs(controllerLeftXAxis), CONTROLLER_AXIS_SPEEDUP) * xSign * deltaTime * controllerPointerSpeed;
+		pointerPosY += pow(std::abs(controllerLeftYAxis), CONTROLLER_AXIS_SPEEDUP) * ySign * deltaTime * controllerPointerSpeed;
+	
+		if (pointerPosX < _screen->getCursorLeftBlackBand())
+			pointerPosX = _screen->getCursorLeftBlackBand();
+		else if (pointerPosX >= _screen->getWidth() - _screen->getCursorLeftBlackBand())
+			pointerPosX = _screen->getWidth() - _screen->getCursorLeftBlackBand() - 1;
+
+		if (pointerPosY < 0)
+			pointerPosY = 0;
+		else if (pointerPosY >= _screen->getHeight())
+			pointerPosY = _screen->getHeight() - 1;
+
+		SDL_Event ev;
+		ev.type = SDL_MOUSEMOTION;
+		ev.motion.x = pointerPosX;
+		ev.motion.y = pointerPosY;
+		ActivateAction(ev);
+	}
+
+	//map scroll
+	if (controllerRightXAxis > CONTROLLER_R_DEADZONE)
+	{
+		if (!rightScrollActive)
+		{
+			rightScrollActive = true;
+			SDL_Event ev;
+			ev.type = SDL_KEYDOWN;
+			ev.key.state = SDL_PRESSED;
+			ev.key.keysym.mod = KMOD_NONE;
+			ev.key.keysym.sym = SDLK_RIGHT;
+			ActivateAction(ev);
+		}
+	}
+	else if (rightScrollActive)
+	{
+		rightScrollActive = false;
+		SDL_Event ev;
+		ev.type = SDL_KEYUP;
+		ev.key.state = SDL_RELEASED;
+		ev.key.keysym.mod = KMOD_NONE;
+		ev.key.keysym.sym = SDLK_RIGHT;
+		ActivateAction(ev);
+	}
+
+	if (controllerRightXAxis < -CONTROLLER_R_DEADZONE)
+	{
+		if (!leftScrollActive)
+		{
+			leftScrollActive = true;
+			SDL_Event ev;
+			ev.type = SDL_KEYDOWN;
+			ev.key.state = SDL_PRESSED;
+			ev.key.keysym.mod = KMOD_NONE;
+			ev.key.keysym.sym = SDLK_LEFT;
+			ActivateAction(ev);
+		}
+	}
+	else if (leftScrollActive)
+	{
+		leftScrollActive = false;
+		SDL_Event ev;
+		ev.type = SDL_KEYUP;
+		ev.key.state = SDL_RELEASED;
+		ev.key.keysym.mod = KMOD_NONE;
+		ev.key.keysym.sym = SDLK_LEFT;
+		ActivateAction(ev);
+	}
+
+	if (controllerRightYAxis > CONTROLLER_R_DEADZONE)
+	{
+		if (!upScrollActive)
+		{
+			upScrollActive = true;
+			SDL_Event ev;
+			ev.type = SDL_KEYDOWN;
+			ev.key.state = SDL_PRESSED;
+			ev.key.keysym.mod = KMOD_NONE;
+			ev.key.keysym.sym = SDLK_DOWN;
+			ActivateAction(ev);
+		}
+	}
+	else if (upScrollActive)
+	{
+		upScrollActive = false;
+		SDL_Event ev;
+		ev.type = SDL_KEYUP;
+		ev.key.state = SDL_RELEASED;
+		ev.key.keysym.mod = KMOD_NONE;
+		ev.key.keysym.sym = SDLK_DOWN;
+		ActivateAction(ev);
+	}
+
+	if (controllerRightYAxis < -CONTROLLER_R_DEADZONE)
+	{
+		if (!downScrollActive)
+		{
+			downScrollActive = true;
+			SDL_Event ev;
+			ev.type = SDL_KEYDOWN;
+			ev.key.state = SDL_PRESSED;
+			ev.key.keysym.mod = KMOD_NONE;
+			ev.key.keysym.sym = SDLK_UP;
+			ActivateAction(ev);
+		}
+	}
+	else if (downScrollActive)
+	{
+		downScrollActive = false;
+		SDL_Event ev;
+		ev.type = SDL_KEYUP;
+		ev.key.state = SDL_RELEASED;
+		ev.key.keysym.mod = KMOD_NONE;
+		ev.key.keysym.sym = SDLK_UP;
+		ActivateAction(ev);
+	}
+}
+#endif
 
 /**
  * Stops the state machine and the game is shut down.

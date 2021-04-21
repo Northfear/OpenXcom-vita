@@ -69,9 +69,11 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <pwd.h>
+#ifndef VITA
 #include <execinfo.h>
-#include <cxxabi.h>
 #include <dlfcn.h>
+#endif
+#include <cxxabi.h>
 #include "Unicode.h"
 #endif
 #include <SDL.h>
@@ -141,6 +143,9 @@ void showError(const std::string &error)
  */
 static char const *getHome()
 {
+#ifdef VITA
+	return "ux0:data/OpenXcom/";
+#else
 	char const *home = getenv("HOME");
 	if (!home)
 	{
@@ -148,6 +153,7 @@ static char const *getHome()
 		home = pwd->pw_dir;
 	}
 	return home;
+#endif
 }
 #endif
 
@@ -424,6 +430,9 @@ bool createFolder(const std::string &path)
 		return false;
 	else
 		return true;
+#elif defined(VITA)
+	int result = sceIoMkdir(path.c_str(), 0777);
+	return result == 0;
 #else
 	mode_t process_mask = umask(0);
 	int result = mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -1048,7 +1057,7 @@ void stackTrace(void *ctx)
 #endif
 #elif __CYGWIN__
 	Log(LOG_FATAL) << "Unfortunately, no stack trace information is available";
-#else
+#elif !defined(VITA)
 	void *frames[32];
 	char buf[1024];
 	int  frame_count = backtrace(frames, 32);

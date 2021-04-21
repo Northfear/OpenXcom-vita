@@ -24,6 +24,12 @@
 #include "Engine/Options.h"
 #include "Menu/StartState.h"
 
+#ifdef VITA
+#include <psp2/kernel/processmgr.h>
+#include <psp2/power.h>
+int _newlib_heap_size_user = 280 * 1024 * 1024;
+#endif
+
 /** @mainpage
  * @author OpenXcom Developers
  *
@@ -106,6 +112,24 @@ int main(int argc, char *argv[])
 #else
 	Logger::reportingLevel() = LOG_INFO;
 #endif
+
+#ifdef VITA
+	scePowerSetArmClockFrequency(444);
+	scePowerSetBusClockFrequency(222);
+	scePowerSetGpuClockFrequency(222);
+	scePowerSetGpuXbarClockFrequency(166);
+
+	char *vitaArgv[7];
+	vitaArgv[1] = "-data";
+	vitaArgv[2] = "ux0:data/OpenXcom/";
+	vitaArgv[3] = "-user";
+	vitaArgv[4] = "ux0:data/OpenXcom/";
+	vitaArgv[5] = "-cfg";
+	vitaArgv[6] = "ux0:data/OpenXcom/";
+	argv = vitaArgv;
+	argc = 7;
+#endif
+
 	if (!Options::init(argc, argv))
 		return EXIT_SUCCESS;
 	std::ostringstream title;
@@ -122,6 +146,9 @@ int main(int argc, char *argv[])
 
 	// Comment this for faster exit.
 	delete game;
+#ifdef VITA
+	sceKernelExitProcess(0);
+#endif
 	return EXIT_SUCCESS;
 }
 

@@ -41,6 +41,11 @@ namespace OpenXcom
 const int Screen::ORIGINAL_WIDTH = 320;
 const int Screen::ORIGINAL_HEIGHT = 200;
 
+#ifdef VITA
+const int Screen::VITA_WIDTH = 960;
+const int Screen::VITA_HEIGHT = 544;
+#endif
+
 static const int VIDEO_WINDOW_POS_LEN = 40;
 static char VIDEO_WINDOW_POS[VIDEO_WINDOW_POS_LEN];
 
@@ -74,6 +79,7 @@ void Screen::makeVideoFlags()
 	}
 
 	// Handle window positioning
+#ifndef VITA
 	if (!Options::fullscreen && Options::rootWindowedMode)
 	{
 		snprintf(VIDEO_WINDOW_POS, VIDEO_WINDOW_POS_LEN, "SDL_VIDEO_WINDOW_POS=%d,%d", Options::windowedModePositionX, Options::windowedModePositionY);
@@ -90,6 +96,7 @@ void Screen::makeVideoFlags()
 		SDL_putenv((char *)SDL_VIDEO_WINDOW_POS_UNSET);
 		SDL_putenv((char *)SDL_VIDEO_CENTERED_UNSET);
 	}
+#endif
 
 	// Handle display mode
 	if (Options::fullscreen)
@@ -113,6 +120,9 @@ void Screen::makeVideoFlags()
  */
 Screen::Screen() : _baseWidth(ORIGINAL_WIDTH), _baseHeight(ORIGINAL_HEIGHT), _scaleX(1.0), _scaleY(1.0), _flags(0), _numColors(0), _firstColor(0), _pushPalette(false), _surface(0)
 {
+#ifdef VITA
+	SDL_VITA_SetWaitGxmFinish(0);
+#endif
 	resetDisplay();
 	memset(deferredPalette, 0, 256*sizeof(SDL_Color));
 }
@@ -472,6 +482,44 @@ void Screen::resetDisplay(bool resetVideo)
 	{
 		setPalette(getPalette());
 	}
+
+#ifdef VITA
+	//center/scale non fullscreen resolutions
+    if (width != VITA_WIDTH || height != VITA_HEIGHT)
+	{
+		SDL_Rect renderRect;
+        renderRect.x = 0;
+        renderRect.y = 0;
+		renderRect.w = width;
+		renderRect.h = height;
+
+        if (Options::fullscreen)
+		{
+            //resize to fullscreen
+			if ((static_cast<float>(VITA_WIDTH) / VITA_HEIGHT) >= (static_cast<float>(width) / height))
+			{
+				float scale = static_cast<float>(VITA_HEIGHT) / height;
+				renderRect.w = width * scale;
+				renderRect.h = VITA_HEIGHT;
+				renderRect.x = (VITA_WIDTH - renderRect.w) / 2;
+			}
+			else
+			{
+				float scale = static_cast<float>(VITA_WIDTH) / width;
+				renderRect.w = VITA_WIDTH;
+				renderRect.h = height * scale;
+				renderRect.y = (VITA_HEIGHT - renderRect.h) / 2;
+			}
+        }
+		else
+		{
+            //center game area
+            renderRect.x = (VITA_WIDTH - width) / 2;
+            renderRect.y = (VITA_HEIGHT - height) / 2;
+        }
+		SDL_VITA_SetVideoModeScaling(renderRect.x, renderRect.y, renderRect.w, renderRect.h);
+    }
+#endif
 }
 
 /**

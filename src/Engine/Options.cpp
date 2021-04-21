@@ -65,6 +65,12 @@ void create()
 	_info.push_back(OptionInfo("fullscreen", &fullscreen, true));
 	_info.push_back(OptionInfo("asyncBlit", &asyncBlit, false));
 	_info.push_back(OptionInfo("keyboardMode", (int*)&keyboardMode, KEYBOARD_OFF));
+#elif VITA
+	_info.push_back(OptionInfo("displayWidth", &displayWidth, Screen::ORIGINAL_WIDTH));
+	_info.push_back(OptionInfo("displayHeight", &displayHeight, Screen::ORIGINAL_HEIGHT));
+	_info.push_back(OptionInfo("fullscreen", &fullscreen, true));
+	_info.push_back(OptionInfo("asyncBlit", &asyncBlit, true));
+	_info.push_back(OptionInfo("keyboardMode", (int*)&keyboardMode, KEYBOARD_ON));
 #else
 	_info.push_back(OptionInfo("displayWidth", &displayWidth, Screen::ORIGINAL_WIDTH*2));
 	_info.push_back(OptionInfo("displayHeight", &displayHeight, Screen::ORIGINAL_HEIGHT*2));
@@ -290,6 +296,9 @@ void create()
 	_info.push_back(OptionInfo("FPSInactive", &FPSInactive, 30, "STR_FPS_INACTIVE_LIMIT", "STR_GENERAL"));
 #endif
 
+#ifdef VITA
+	_info.push_back(OptionInfo("controllerPointerSpeed", &controllerPointerSpeed, 10));
+#endif
 }
 
 // we can get fancier with these detection routines, but for now just look for

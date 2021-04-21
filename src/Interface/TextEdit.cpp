@@ -26,6 +26,63 @@
 namespace OpenXcom
 {
 
+#if defined(VITA)
+#include "../Engine/SDL12GamepadMappings.h"
+
+const int totalCharactersDPad = 53;
+bool currentUpper = false;
+int currentCharIndex = 0;
+
+const unsigned char dPadKeys[totalCharactersDPad] = {
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'!', '\'', '\"', '#', ',', '.', '-', '_', ':', '/', '|', '[', ']', '(', ')', '*', ' '
+};
+
+char GetCurrentDPadChar()
+{
+	unsigned char modKeyValue = dPadKeys[currentCharIndex];
+
+	if (currentUpper && dPadKeys[currentCharIndex] >= 97 && dPadKeys[currentCharIndex] <= 122)
+	{
+		modKeyValue -= 32;
+	}
+
+	return modKeyValue;
+}
+
+void SetCurrentDPadCharIndex( char currentChar )
+{
+	if ( currentChar >= 'A' && currentChar <= 'Z' )
+	{
+		currentUpper = true;
+		currentChar += 32;
+	}
+
+	for ( int i = 0; i < totalCharactersDPad; ++i )
+	{
+		if ( dPadKeys[i] == currentChar )
+		{
+			currentCharIndex = i;
+			return;
+		}
+	}
+	currentCharIndex = 0;
+}
+
+void TextEdit::EmulateKeyEvent(Action *action, State *state, SDLKey key, Uint16 unicode)
+{
+	SDL_Event ev;
+	ev.type = SDL_KEYDOWN;
+	ev.key.state = SDL_PRESSED;
+	ev.key.keysym.mod = KMOD_NONE;
+	ev.key.keysym.sym = key;
+	ev.key.keysym.unicode = unicode;
+	Action emulatedAction = Action(&ev, action->getXScale(), action->getYScale(), action->getTopBlackBand(), action->getLeftBlackBand());
+	InteractiveSurface::handle(&emulatedAction, state);
+}
+#endif
+
 /**
  * Sets up a blank text edit with the specified size and position.
  * @param state Pointer to state the text edit belongs to.
@@ -64,6 +121,74 @@ TextEdit::~TextEdit()
  */
 void TextEdit::handle(Action *action, State *state)
 {
+#ifdef VITA
+    if (action->getDetails()->type == SDL_JOYBUTTONDOWN)
+	{
+		// check char before the caret
+		if ( _caretPos > 0 )
+		{
+			SetCurrentDPadCharIndex(_value[_caretPos - 1]);
+		}
+		else
+		{
+			currentUpper = true;
+			currentCharIndex = 0;
+		}
+
+		switch ( action->getDetails()->jbutton.button )
+		{
+			// delete char
+			case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+			{
+				EmulateKeyEvent(action, state, SDLK_BACKSPACE, 0);
+				break;
+			}
+			// add new char
+			case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+			{
+				currentUpper = _caretPos == 0;
+				currentCharIndex = 0;
+				const char c = GetCurrentDPadChar();
+				EmulateKeyEvent(action, state, SDLK_UNKNOWN, c);
+				break;
+			}
+			// next char
+			case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+			{
+				EmulateKeyEvent(action, state, SDLK_BACKSPACE, 0);
+				++currentCharIndex;
+				if ( currentCharIndex >= totalCharactersDPad )
+					currentCharIndex = 0;
+				const char c = GetCurrentDPadChar();
+				EmulateKeyEvent(action, state, SDLK_UNKNOWN, c);
+				break;
+			}
+			// previous char
+			case SDL_CONTROLLER_BUTTON_DPAD_UP:
+			{
+				EmulateKeyEvent(action, state, SDLK_BACKSPACE, 0);
+				--currentCharIndex;
+				if ( currentCharIndex < 0 )
+					currentCharIndex = totalCharactersDPad - 1;
+				const char c = GetCurrentDPadChar();
+				EmulateKeyEvent(action, state, SDLK_UNKNOWN, c);
+				break;
+			}
+			// switch uppler/lowercase
+			case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+			case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+			{
+				currentUpper = !currentUpper;
+				EmulateKeyEvent(action, state, SDLK_BACKSPACE, 0);
+				const char c = GetCurrentDPadChar();
+				EmulateKeyEvent(action, state, SDLK_UNKNOWN, c);
+				break;
+			}
+			default:
+				break;
+		}
+	}
+#endif
 	InteractiveSurface::handle(action, state);
 	if (_isFocused && _modal && action->getDetails()->type == SDL_MOUSEBUTTONDOWN &&
 		(action->getAbsoluteXMouse() < getX() || action->getAbsoluteXMouse() >= getX() + getWidth() ||
@@ -72,6 +197,8 @@ void TextEdit::handle(Action *action, State *state)
 		setFocus(false);
 	}
 }
+
+#include <psp2/kernel/clib.h>
 
 /**
  * Controls the blinking animation when
@@ -94,6 +221,12 @@ void TextEdit::setFocus(bool focus, bool modal)
 			_timer->start();
 			if (_modal)
 				_state->setModal(this);
+#ifdef VITA
+			std::string convertedText = Unicode::convUtf32ToUtf8(_value);
+			_value.clear();
+			_caretPos = 0;
+			SDL_VITA_ShowScreenKeyboard(convertedText.c_str(), false);
+#endif
 		}
 		else
 		{

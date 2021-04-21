@@ -25,6 +25,10 @@
 #include <stdio.h>
 #include "CrossPlatform.h"
 
+#ifdef VITA
+#include <psp2/kernel/clib.h>
+#endif
+
 namespace OpenXcom
 {
 
@@ -90,6 +94,9 @@ inline Logger::~Logger()
 		fprintf(stderr, "%s", os.str().c_str());
 		fflush(stderr);
 	}
+#ifdef VITA
+	sceClibPrintf("%s", os.str().c_str());
+#endif
 }
 
 inline SeverityLevel& Logger::reportingLevel()

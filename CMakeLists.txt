@@ -212,5 +212,19 @@ if ( NOT WIN32 )
     DESTINATION "${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/scalable/apps")
 endif ()
 
+if(VITA)
+    add_definitions(-DVITA)
+    set(VITA_FLAGS "-O2 -mcpu=cortex-a9 -mfpu=neon -flto -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VITA_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VITA_FLAGS}")
+    set(VITA_LIBS "-ljpeg -lpng -lwebp -lz -lvorbisfile -lvorbis -logg -lmikmod -lScePower_stub -lSceAudio_stub -lSceCtrl_stub -lSceHid_stub \
+    -lSceTouch_stub -lSceDisplay_stub -lSceGxm_stub -lSceCommonDialog_stub")
+    SET(CMAKE_CXX_STANDARD_LIBRARIES "${VITA_LIBS}")
+endif()
+
 add_subdirectory ( docs )
 add_subdirectory ( src )
+
+if(VITA)
+    include("${CMAKE_SOURCE_DIR}/vita/vita.cmake")
+endif()
