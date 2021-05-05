@@ -66,7 +66,7 @@ RAM is pretty limited on Vita, so there's a chance that game would just crash wi
 
 You can change game resolution in the "Video" options menu.
 
-320x200 provides the best performance. 960x544 looks good with a 1.5x Battlescape Scale.
+320x200 provides the best performance. 480x272 with Display Mode set to "Fullscreen" and Geoscape Scale/Battlescape Scale set to "Full Display" privides better visuals while still having good performance.
 
 "Fullscreen" display mode scales game surface to fullscreen. "Windowed" mode centers the game area w/o scaling it (640x400 in windowed mode is perfect x2 scale).
 
