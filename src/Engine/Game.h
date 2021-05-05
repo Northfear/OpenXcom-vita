@@ -86,6 +86,9 @@ private:
 	bool rightScrollActive = false;
 	bool upScrollActive = false;
 	bool downScrollActive = false;
+	bool lShoulderPressed = false;
+	bool rShoulderPressed = false;
+	bool ctrlMod = false;
 #endif
 
 public:

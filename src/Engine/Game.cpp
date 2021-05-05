@@ -478,10 +478,12 @@ void Game::HandleControllerButtonEvent(const SDL_JoyButtonEvent &button)
 		else if (button.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
 		{
 			ev.key.keysym.sym = SDLK_LSHIFT;
+			lShoulderPressed = button.state == SDL_PRESSED;
 		}
 		else if (button.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
 		{
 			ev.key.keysym.sym = SDLK_TAB;
+			rShoulderPressed = button.state == SDL_PRESSED;
 		}
 		else if (button.button == SDL_CONTROLLER_BUTTON_Y)
 		{
@@ -502,6 +504,17 @@ void Game::HandleControllerButtonEvent(const SDL_JoyButtonEvent &button)
 		else
 		{
 			activateAction = false;
+		}
+
+		if (lShoulderPressed && rShoulderPressed && !ctrlMod)
+		{
+			ctrlMod = true;
+			SDL_SetModState(KMOD_LCTRL);
+		}
+		else if ((!lShoulderPressed || !rShoulderPressed) && ctrlMod)
+		{
+			ctrlMod = false;
+			SDL_SetModState(KMOD_NONE);
 		}
 	}
 

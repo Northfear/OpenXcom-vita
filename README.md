@@ -46,6 +46,7 @@ https://github.com/Cpasjuste/psp2shell
 - L1 - Select Next Unit
 - SELECT - Esc
 - START - End turn
+- R1 + L1 - Ctrl emulation (force fire, strafe with alternative movement on)
 
 Buttons can be remapped in the "Controls" options menu.
 
@@ -59,7 +60,7 @@ Battlescape saves can be transferred from Vita to PC, but not the other way arou
 
 ### Mod support
 
-RAM is pretty limited on Vita, so there's a change that game would just crash with heavy mods installed.
+RAM is pretty limited on Vita, so there's a chance that game would just crash with heavy mods installed.
 
 ### Other
 
