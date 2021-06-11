@@ -133,6 +133,9 @@ const std::string ModNameMaster = "master";
 /// Predefined name for current mod that is loading rulesets.
 const std::string ModNameCurrent = "current";
 
+/// Reduction of size allocated for transparcey LUTs.
+const size_t ModTransparceySizeReduction = 100;
+
 void Mod::resetGlobalStatics()
 {
 	DOOR_OPEN = 3;
@@ -673,8 +676,9 @@ int Mod::getModOffset() const
  * @param node Node with data
  * @param shared Max offset limit that is shared for every mod
  * @param multiplier Value used by `projectile` surface set to convert projectile offset to index offset in surface.
+ * @param sizeScale Value used by transparency colors, reduce total number of avaialbe space for offset.
  */
-void Mod::loadOffsetNode(const std::string &parent, int& offset, const YAML::Node &node, int shared, const std::string &set, size_t multiplier) const
+void Mod::loadOffsetNode(const std::string &parent, int& offset, const YAML::Node &node, int shared, const std::string &set, size_t multiplier, size_t sizeScale) const
 {
 	assert(_modCurrent);
 	const ModData* curr = _modCurrent;
@@ -723,7 +727,7 @@ void Mod::loadOffsetNode(const std::string &parent, int& offset, const YAML::Nod
 	if (offset < -1)
 	{
 		std::ostringstream err;
-		err << "Error for '" << parent << "': offset '" << offset << "' has incorrect value in set '" << set << "'";
+		err << "Error for '" << parent << "': offset '" << offset << "' has incorrect value in set '" << set << "' at line " << node.Mark().line;
 		throw Exception(err.str());
 	}
 	else if (offset == -1)
@@ -734,14 +738,14 @@ void Mod::loadOffsetNode(const std::string &parent, int& offset, const YAML::Nod
 	{
 		int f = offset;
 		f *= multiplier;
-		if ((size_t)f > curr->size)
+		if ((size_t)f > curr->size / sizeScale)
 		{
 			std::ostringstream err;
-			err << "Error for '" << parent << "': offset '" << offset << "' exceeds mod size limit " << (curr->size / multiplier) << " in set '" << set << "'";
+			err << "Error for '" << parent << "': offset '" << offset << "' exceeds mod size limit " << (curr->size / multiplier / sizeScale) << " in set '" << set << "'";
 			throw Exception(err.str());
 		}
 		if (f >= shared)
-			f += curr->offset;
+			f += curr->offset / sizeScale;
 		offset = f;
 	}
 }
@@ -776,6 +780,20 @@ void Mod::loadSoundOffset(const std::string &parent, int& sound, const YAML::Nod
 	if (node)
 	{
 		loadOffsetNode(parent, sound, node, getSoundSet(set)->getMaxSharedSounds(), set, 1);
+	}
+}
+
+/**
+ * Gets the mod offset array for a certain transparency index.
+ * @param parent Name of parent node, used for better error message.
+ * @param index Member to load new transparency index.
+ * @param node Node with data.
+ */
+void Mod::loadTransparencyOffset(const std::string &parent, int& index, const YAML::Node &node) const
+{
+	if (node)
+	{
+		loadOffsetNode(parent, index, node, 0, "TransparencyLUTs", 1, ModTransparceySizeReduction);
 	}
 }
 
@@ -1029,16 +1047,38 @@ void Mod::loadResourceConfigFile(const std::string &filename)
 			rule->load(*i);
 		}
 	}
-	for (YAML::const_iterator i = doc["transparencyLUTs"].begin(); i != doc["transparencyLUTs"].end(); ++i)
+
+	if (const YAML::Node& luts = doc["transparencyLUTs"])
 	{
-		for (YAML::const_iterator j = (*i)["colors"].begin(); j != (*i)["colors"].end(); ++j)
+		const size_t start = _modCurrent->offset / ModTransparceySizeReduction;
+		const size_t limit =  _modCurrent->size / ModTransparceySizeReduction;
+		size_t curr = 0;
+
+		_transparencies.resize(start + limit);
+		for (YAML::const_iterator i = luts.begin(); i != luts.end(); ++i)
 		{
-			SDL_Color color;
-			color.r = (*j)[0].as<int>(0);
-			color.g = (*j)[1].as<int>(0);
-			color.b = (*j)[2].as<int>(0);
-			color.unused = (*j)[3].as<int>(2);;
-			_transparencies.push_back(color);
+			const YAML::Node& c = (*i)["colors"];
+			if (c.IsSequence())
+			{
+				for (YAML::const_iterator j = c.begin(); j != c.end(); ++j)
+				{
+					if (curr == limit)
+					{
+						throw Exception("transparencyLUTs mod limit reach");
+					}
+					SDL_Color color;
+					color.r = (*j)[0].as<int>(0);
+					color.g = (*j)[1].as<int>(0);
+					color.b = (*j)[2].as<int>(0);
+					color.unused = (*j)[3].as<int>(2);
+					// technically its breaking change as it always overwritte from offset `start + 0` but no two mods could work correctly before this change.
+					_transparencies[start + curr++] = color;
+				}
+			}
+			else
+			{
+				throw Exception("unknown transparencyLUTs node type");
+			}
 		}
 	}
 }
@@ -3634,38 +3674,49 @@ Music *Mod::loadMusic(MusicFormat fmt, const std::string &file, int track, float
  */
 void Mod::createTransparencyLUT(Palette *pal)
 {
-	SDL_Color desiredColor;
+	const int opacityMax = 4;
+	const SDL_Color* palColors = pal->getColors(0);
 	std::vector<Uint8> lookUpTable;
 	// start with the color sets
+	lookUpTable.reserve(_transparencies.size() * 256 * opacityMax);
 	for (std::vector<SDL_Color>::const_iterator tint = _transparencies.begin(); tint != _transparencies.end(); ++tint)
 	{
 		// then the opacity levels, using the alpha channel as the step
-		for (int opacity = 1; opacity < 1 + tint->unused * 4; opacity += tint->unused)
+		for (int opacity = 1; opacity <= opacityMax; ++opacity)
 		{
+			// pseudo interpolation of palette color with tint
+			// for small values `op` its should behave same as original TFTD
+			// but for bigger values it make result closer to tint color
+			const int op = Clamp(opacity * tint->unused, 0, 64);
+			const float co = 1.0f - Sqr(op / 64.0f); // 1.0 -> 0.0
+			const float to = op * 1.0f; // 0.0 -> 64.0
+
 			// then the palette itself
 			for (int currentColor = 0; currentColor < 256; ++currentColor)
 			{
-				// add the RGB values from the ruleset to those of the colors contained in the palette
-				// in order to determine the desired color
-				// yes all this casting and clamping is required, we're dealing with Uint8s here, and there's
-				// a lot of potential for values to wrap around, which would be very bad indeed.
-				desiredColor.r = std::min(255, (int)(pal->getColors(currentColor)->r) + (tint->r * opacity));
-				desiredColor.g = std::min(255, (int)(pal->getColors(currentColor)->g) + (tint->g * opacity));
-				desiredColor.b = std::min(255, (int)(pal->getColors(currentColor)->b) + (tint->b * opacity));
+				SDL_Color desiredColor;
 
-				Uint8 closest = 0;
+				desiredColor.r = std::min(255, (int)Round((palColors[currentColor].r * co) + (tint->r * to)));
+				desiredColor.g = std::min(255, (int)Round((palColors[currentColor].g * co) + (tint->g * to)));
+				desiredColor.b = std::min(255, (int)Round((palColors[currentColor].b * co) + (tint->b * to)));
+
+				Uint8 closest = currentColor;
 				int lowestDifference = INT_MAX;
-				// now compare each color in the palette to find the closest match to our desired one
-				for (int comparator = 0; comparator < 256; ++comparator)
+				// if opacity is zero then we stay with current color, transparet color will stay same too
+				if (op != 0 && currentColor != 0)
 				{
-					int currentDifference = Sqr(desiredColor.r - pal->getColors(comparator)->r) +
-						Sqr(desiredColor.g - pal->getColors(comparator)->g) +
-						Sqr(desiredColor.b - pal->getColors(comparator)->b);
-
-					if (currentDifference < lowestDifference)
+					// now compare each color in the palette to find the closest match to our desired one
+					for (int comparator = 1; comparator < 256; ++comparator)
 					{
-						closest = comparator;
-						lowestDifference = currentDifference;
+						int currentDifference = Sqr(desiredColor.r - palColors[comparator].r) +
+							Sqr(desiredColor.g - palColors[comparator].g) +
+							Sqr(desiredColor.b - palColors[comparator].b);
+
+						if (currentDifference < lowestDifference)
+						{
+							closest = comparator;
+							lowestDifference = currentDifference;
+						}
 					}
 				}
 				lookUpTable.push_back(closest);
