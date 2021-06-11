@@ -5,7 +5,7 @@ Download openxcom.vpk from https://github.com/Northfear/OpenXcom-vita/releases a
 
 Download openxcom-data.zip from https://github.com/Northfear/OpenXcom-vita/releases, extract it and copy ```OpenXcom``` folder into ```ux0:data/```.
 
-Copy content of installed Enemy Unknown folder into ```ux0:data/OpenXcom/UFO``` or/and installed Terror From The Deep into ```ux0:data/OpenXcom/TFTD```. You can check README.txt inside each folder for details.
+Copy content of installed Enemy Unknown folder into ```ux0:data/OpenXcom/UFO``` or/and installed Terror From The Deep into ```ux0:data/OpenXcom/TFTD```. Check README.txt UFO/TFTD for details about exact game folders that need to be copied.
 
 [rePatch reDux0](https://github.com/dots-tb/rePatch-reDux0) OR [FdFix](https://github.com/TheOfficialFloW/FdFix) plugin may be required for proper suspend/resume support (only use one at a time).
 
@@ -66,9 +66,9 @@ RAM is pretty limited on Vita, so there's a chance that game would just crash wi
 
 You can change game resolution in the "Video" options menu.
 
-320x200 provides the best performance. 480x272 with Display Mode set to "Fullscreen" and Geoscape Scale/Battlescape Scale set to "Full Display" privides better visuals while still having good performance.
+320x200 provides the best performance. 480x272 with Display Mode set to "Fullscreen" and Geoscape Scale/Battlescape Scale set to "Full Display" provides great visuals (x2 pixel scaling) while still having good performance.
 
-"Fullscreen" display mode scales game surface to fullscreen. "Windowed" mode centers the game area w/o scaling it (640x400 in windowed mode is perfect x2 scale).
+"Fullscreen" display mode scales game surface to fullscreen. "Windowed" mode centers the game area w/o scaling it.
 
 You can skip intros by tapping on screen.
 

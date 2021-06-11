@@ -66,8 +66,8 @@ void create()
 	_info.push_back(OptionInfo("asyncBlit", &asyncBlit, false));
 	_info.push_back(OptionInfo("keyboardMode", (int*)&keyboardMode, KEYBOARD_OFF));
 #elif VITA
-	_info.push_back(OptionInfo("displayWidth", &displayWidth, Screen::ORIGINAL_WIDTH));
-	_info.push_back(OptionInfo("displayHeight", &displayHeight, Screen::ORIGINAL_HEIGHT));
+	_info.push_back(OptionInfo("displayWidth", &displayWidth, Screen::VITA_WIDTH / 2));
+	_info.push_back(OptionInfo("displayHeight", &displayHeight, Screen::VITA_HEIGHT / 2));
 	_info.push_back(OptionInfo("fullscreen", &fullscreen, true));
 	_info.push_back(OptionInfo("asyncBlit", &asyncBlit, true));
 	_info.push_back(OptionInfo("keyboardMode", (int*)&keyboardMode, KEYBOARD_ON));
@@ -89,8 +89,13 @@ void create()
 	//_info.push_back(OptionInfo("baseYGeoscape", &baseYGeoscape, Screen::ORIGINAL_HEIGHT));
 	//_info.push_back(OptionInfo("baseXBattlescape", &baseXBattlescape, Screen::ORIGINAL_WIDTH));
 	//_info.push_back(OptionInfo("baseYBattlescape", &baseYBattlescape, Screen::ORIGINAL_HEIGHT));
+#ifdef VITA
+	_info.push_back(OptionInfo("geoscapeScale", &geoscapeScale, 5));
+	_info.push_back(OptionInfo("battlescapeScale", &battlescapeScale, 5));
+#else
 	_info.push_back(OptionInfo("geoscapeScale", &geoscapeScale, 0));
 	_info.push_back(OptionInfo("battlescapeScale", &battlescapeScale, 0));
+#endif
 	_info.push_back(OptionInfo("useScaleFilter", &useScaleFilter, false));
 	_info.push_back(OptionInfo("useHQXFilter", &useHQXFilter, false));
 	_info.push_back(OptionInfo("useXBRZFilter", &useXBRZFilter, false));
