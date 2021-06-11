@@ -92,6 +92,7 @@ void create()
 #ifdef VITA
 	_info.push_back(OptionInfo("geoscapeScale", &geoscapeScale, 5));
 	_info.push_back(OptionInfo("battlescapeScale", &battlescapeScale, 5));
+	_info.push_back(OptionInfo("useBilinearFilter", &useBilinearFilter, false));
 #else
 	_info.push_back(OptionInfo("geoscapeScale", &geoscapeScale, 0));
 	_info.push_back(OptionInfo("battlescapeScale", &battlescapeScale, 0));
@@ -1207,6 +1208,9 @@ void backupDisplay()
 	Options::newFullscreen = Options::fullscreen;
 	Options::newAllowResize = Options::allowResize;
 	Options::newBorderless = Options::borderless;
+#ifdef VITA
+	Options::newBilinearFilter = Options::useBilinearFilter;
+#endif
 }
 
 /**
@@ -1230,6 +1234,9 @@ void switchDisplay()
 	std::swap(fullscreen, newFullscreen);
 	std::swap(allowResize, newAllowResize);
 	std::swap(borderless, newBorderless);
+#ifdef VITA
+	std::swap(useBilinearFilter, newBilinearFilter);
+#endif
 }
 
 }

@@ -211,6 +211,9 @@ void OptionsBaseState::btnOkClick(Action *)
 			Options::useOpenGL != Options::newOpenGL ||
 			Options::useScaleFilter != Options::newScaleFilter ||
 			Options::useHQXFilter != Options::newHQXFilter ||
+#ifdef VITA
+			Options::useBilinearFilter != Options::newBilinearFilter ||
+#endif
 			Options::useOpenGLShader != Options::newOpenGLShader)
 		{
 			_game->pushState(new OptionsConfirmState(_origin));

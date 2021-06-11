@@ -484,6 +484,7 @@ void Screen::resetDisplay(bool resetVideo)
 	}
 
 #ifdef VITA
+	SDL_VITA_SetVideoModeBilinear(Options::useBilinearFilter);
 	//center/scale non fullscreen resolutions
     if (width != VITA_WIDTH || height != VITA_HEIGHT)
 	{

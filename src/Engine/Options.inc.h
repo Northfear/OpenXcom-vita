@@ -49,5 +49,7 @@ OPT std::vector< std::pair<std::string, bool> > mods; // ordered list of availab
 OPT SoundFormat currentSound;
 
 #ifdef VITA
+OPT bool useBilinearFilter;
+OPT bool newBilinearFilter;
 OPT int controllerPointerSpeed;
 #endif
