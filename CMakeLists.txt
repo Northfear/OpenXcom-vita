@@ -214,11 +214,11 @@ endif ()
 
 if(VITA)
     add_definitions(-DVITA)
-    set(VITA_FLAGS "-O2 -mcpu=cortex-a9 -mfpu=neon -flto -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
+    set(VITA_FLAGS "-O3 -mcpu=cortex-a9 -mfpu=neon -fgraphite-identity -floop-nest-optimize -flto")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VITA_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VITA_FLAGS}")
     set(VITA_LIBS "-ljpeg -lpng -lwebp -lz -lvorbisfile -lvorbis -logg -lmikmod -lScePower_stub -lSceAudio_stub -lSceCtrl_stub -lSceHid_stub \
-    -lSceTouch_stub -lSceDisplay_stub -lSceGxm_stub -lSceCommonDialog_stub")
+    -lSceTouch_stub -lSceDisplay_stub -lSceGxm_stub -lSceCommonDialog_stub -fno-builtin-memcpy -fno-builtin-memset -fno-builtin-memmove -fno-builtin-memcmp")
     SET(CMAKE_CXX_STANDARD_LIBRARIES "${VITA_LIBS}")
 endif()
 

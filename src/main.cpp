@@ -27,7 +27,28 @@
 #ifdef VITA
 #include <psp2/kernel/processmgr.h>
 #include <psp2/power.h>
-int _newlib_heap_size_user = 280 * 1024 * 1024;
+
+int _newlib_heap_size_user = 275 * 1024 * 1024;
+
+void *memcpy(void *destination, const void *source, size_t n)
+{
+	return sceClibMemcpy(destination, source, n);
+}
+
+void *memset(void *destination, int c, size_t n)
+{
+	return sceClibMemset(destination, c, n);
+}
+
+void *memmove(void *destination, const void *source, size_t n)
+{
+	return sceClibMemmove(destination, source, n);
+}
+
+int memcmp(const void *arr1, const void *arr2, size_t n)
+{
+	return sceClibMemcmp(arr1, arr2, n);
+}
 #endif
 
 /** @mainpage
