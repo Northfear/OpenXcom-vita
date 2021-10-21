@@ -151,13 +151,13 @@ void SavedBattleGame::load(const YAML::Node &node, Mod *mod, SavedGame* savedGam
 		size_t totalTiles = node["totalTiles"].as<size_t>();
 
 		memset(&serKey, 0, sizeof(Tile::SerializationKey));
-		serKey.index = node["tileIndexSize"].as<Uint8>(serKey.index);
+		serKey.index = node["tileIndexSize"].as<char>(serKey.index);
 		serKey.totalBytes = node["tileTotalBytesPer"].as<Uint32>(serKey.totalBytes);
-		serKey._fire = node["tileFireSize"].as<Uint8>(serKey._fire);
-		serKey._smoke = node["tileSmokeSize"].as<Uint8>(serKey._smoke);
-		serKey._mapDataID = node["tileIDSize"].as<Uint8>(serKey._mapDataID);
-		serKey._mapDataSetID = node["tileSetIDSize"].as<Uint8>(serKey._mapDataSetID);
-		serKey.boolFields = node["tileBoolFieldsSize"].as<Uint8>(1); // boolean flags used to be stored in an unmentioned byte (Uint8) :|
+		serKey._fire = node["tileFireSize"].as<char>(serKey._fire);
+		serKey._smoke = node["tileSmokeSize"].as<char>(serKey._smoke);
+		serKey._mapDataID = node["tileIDSize"].as<char>(serKey._mapDataID);
+		serKey._mapDataSetID = node["tileSetIDSize"].as<char>(serKey._mapDataSetID);
+		serKey.boolFields = node["tileBoolFieldsSize"].as<char>(1); // boolean flags used to be stored in an unmentioned byte (Uint8) :|
 
 		// load binary tile data!
 		YAML::Binary binTiles = node["binTiles"].as<YAML::Binary>();
@@ -415,13 +415,13 @@ YAML::Node SavedBattleGame::save() const
 	}
 #else
 	// first, write out the field sizes we're going to use to write the tile data
-	node["tileIndexSize"] = Tile::serializationKey.index;
+	node["tileIndexSize"] = static_cast<char>(Tile::serializationKey.index);
 	node["tileTotalBytesPer"] = Tile::serializationKey.totalBytes;
-	node["tileFireSize"] = Tile::serializationKey._fire;
-	node["tileSmokeSize"] = Tile::serializationKey._smoke;
-	node["tileIDSize"] = Tile::serializationKey._mapDataID;
-	node["tileSetIDSize"] = Tile::serializationKey._mapDataSetID;
-	node["tileBoolFieldsSize"] = Tile::serializationKey.boolFields;
+	node["tileFireSize"] = static_cast<char>(Tile::serializationKey._fire);
+	node["tileSmokeSize"] = static_cast<char>(Tile::serializationKey._smoke);
+	node["tileIDSize"] = static_cast<char>(Tile::serializationKey._mapDataID);
+	node["tileSetIDSize"] = static_cast<char>(Tile::serializationKey._mapDataSetID);
+	node["tileBoolFieldsSize"] = static_cast<char>(Tile::serializationKey.boolFields);
 
 	size_t tileDataSize = Tile::serializationKey.totalBytes * _mapsize_z * _mapsize_y * _mapsize_x;
 	Uint8* tileData = (Uint8*) calloc(tileDataSize, 1);
@@ -1108,6 +1108,68 @@ void SavedBattleGame::removeItem(BattleItem *item)
 	*/
 
 }
+
+/**
+ * Converts a unit into a unit of another type.
+ * @param unit The unit to convert.
+ * @return Pointer to the new unit.
+ */
+BattleUnit *SavedBattleGame::convertUnit(BattleUnit *unit, const SavedGame* saveGame, Mod* mod)
+{
+	const std::string newType = unit->getSpawnUnit();
+	bool visible = unit->getVisible();
+	// in case the unit was unconscious
+	removeUnconsciousBodyItem(unit);
+
+	unit->instaKill();
+
+	for (std::vector<BattleItem*>::iterator i = unit->getInventory()->begin(); i != unit->getInventory()->end(); ++i)
+	{
+		getTileEngine()->itemDrop(getTile(unit->getPosition()), (*i), mod);
+		(*i)->setOwner(0);
+	}
+
+	unit->getInventory()->clear();
+
+	// remove unit-tile link
+	unit->setTile(0);
+
+	getTile(unit->getPosition())->setUnit(0);
+	Unit *newRule = mod->getUnit(newType, true);
+	std::string newArmor = newRule->getArmor();
+	std::string terroristWeapon = newRule->getRace().substr(4);
+	terroristWeapon += "_WEAPON";
+	RuleItem *newItem = mod->getItem(terroristWeapon);
+
+	BattleUnit *newUnit = new BattleUnit(newRule,
+		FACTION_HOSTILE,
+		getUnits()->back()->getId() + 1,
+		mod->getArmor(newArmor, true),
+		mod->getStatAdjustment(saveGame->getDifficulty()),
+		getDepth());
+
+	getTile(unit->getPosition())->setUnit(newUnit, getTile(unit->getPosition() + Position(0,0,-1)));
+	newUnit->setPosition(unit->getPosition());
+	newUnit->setDirection(unit->getDirection());
+	newUnit->setCache(0);
+	newUnit->setTimeUnits(0);
+	newUnit->setSpecialWeapon(this, mod);
+	getUnits()->push_back(newUnit);
+	newUnit->setAIModule(new AIModule(this, newUnit, 0));
+	if (newItem)
+	{
+		BattleItem *bi = new BattleItem(newItem, getCurrentItemId());
+		bi->moveToOwner(newUnit);
+		bi->setSlot(mod->getInventory("STR_RIGHT_HAND", true));
+		getItems()->push_back(bi);
+	}
+	newUnit->setVisible(visible);
+	getTileEngine()->calculateFOV(newUnit->getPosition());
+	getTileEngine()->applyGravity(newUnit->getTile());
+	newUnit->dontReselect();
+	return newUnit;
+}
+
 
 /**
  * Sets whether the mission was aborted or successful.
