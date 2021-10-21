@@ -198,8 +198,6 @@ void TextEdit::handle(Action *action, State *state)
 	}
 }
 
-#include <psp2/kernel/clib.h>
-
 /**
  * Controls the blinking animation when
  * the text edit is focused.

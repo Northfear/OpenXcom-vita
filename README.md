@@ -52,12 +52,6 @@ Buttons can be remapped in the "Controls" options menu.
 
 Cursor movement speed can be changed by editing the ```controllerPointerSpeed``` option in ```ux0:data/OpenXcom/options.cfg```.
 
-### Savegame transfers between Vita and PC
-
-Geoscape saves can be transferred between Vita and PC.
-
-Battlescape saves can be transferred from Vita to PC, but not the other way around.
-
 ### Mod support
 
 RAM is pretty limited on Vita, so there's a chance that game would just crash with heavy mods installed.
