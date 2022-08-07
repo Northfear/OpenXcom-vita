@@ -1,3 +1,5 @@
+include(GNUInstallDirs)
+
 find_program ( DOXYGEN_EXECUTABLE
   NAMES doxygen
   DOC "Doxygen program" )
@@ -38,5 +40,5 @@ endif ()
 
 # Only useful for make install/package under *nix OSes, but not macOS.
 if ( UNIX AND NOT APPLE )
-    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/openxcom.6 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man6)
+    INSTALL(FILES openxcom.6 DESTINATION ${CMAKE_INSTALL_MANDIR}/man6)
 endif ()
