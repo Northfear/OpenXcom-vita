@@ -55,7 +55,7 @@ private:
 	int _timeUntilNextFrame;
 	static const double VOLUME_GRADIENT;
 
-#ifdef VITA
+#ifdef __vita__
     void HandleControllerAxisEvent(const SDL_JoyAxisEvent &motion);
     void HandleControllerButtonEvent(const SDL_JoyButtonEvent &button);
     void ProcessControllerAxisMotion();

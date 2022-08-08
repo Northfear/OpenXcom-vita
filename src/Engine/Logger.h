@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include "CrossPlatform.h"
 
-#ifdef VITA
+#ifdef __vita__
 #include <psp2/kernel/clib.h>
 #endif
 
@@ -94,7 +94,7 @@ inline Logger::~Logger()
 		fprintf(stderr, "%s", os.str().c_str());
 		fflush(stderr);
 	}
-#ifdef VITA
+#ifdef __vita__
 	sceClibPrintf("%s", os.str().c_str());
 #endif
 }

@@ -210,7 +210,7 @@ OptionsVideoState::OptionsVideoState(OptionsOrigin origin) : OptionsBaseState(or
 	filterNames.push_back("Scale");
 	filterNames.push_back("HQx");
 	filterNames.push_back("xBRZ");
-#ifdef VITA
+#ifdef __vita__
 	filterNames.push_back("Bilinear");
 	_filters.push_back("");
 #endif
@@ -258,7 +258,7 @@ OptionsVideoState::OptionsVideoState(OptionsOrigin origin) : OptionsBaseState(or
 	{
 		selFilter = 3;
 	}
-#ifdef VITA
+#ifdef __vita__
 	else if (Options::useBilinearFilter)
 	{
 		selFilter = 4;
@@ -488,7 +488,7 @@ void OptionsVideoState::cbxFilterChange(Action *)
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = false;
-#ifdef VITA
+#ifdef __vita__
 		Options::newBilinearFilter = false;
 #endif
 		break;
@@ -497,7 +497,7 @@ void OptionsVideoState::cbxFilterChange(Action *)
 		Options::newScaleFilter = true;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = false;
-#ifdef VITA
+#ifdef __vita__
 		Options::newBilinearFilter = false;
 #endif
 		break;
@@ -506,7 +506,7 @@ void OptionsVideoState::cbxFilterChange(Action *)
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = true;
 		Options::newXBRZFilter = false;
-#ifdef VITA
+#ifdef __vita__
 		Options::newBilinearFilter = false;
 #endif
 		break;
@@ -515,11 +515,11 @@ void OptionsVideoState::cbxFilterChange(Action *)
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = true;
-#ifdef VITA
+#ifdef __vita__
 		Options::newBilinearFilter = false;
 #endif
 		break;
-#ifdef VITA
+#ifdef __vita__
 	case 4:
 		Options::newOpenGL = false;
 		Options::newScaleFilter = false;
@@ -533,7 +533,7 @@ void OptionsVideoState::cbxFilterChange(Action *)
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = false;
-#ifdef VITA
+#ifdef __vita__
 		Options::newBilinearFilter = false;
 #endif
 		Options::newOpenGLShader = _filters[_cbxFilter->getSelected()];

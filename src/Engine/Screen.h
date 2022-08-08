@@ -56,7 +56,7 @@ public:
 	static const int ORIGINAL_WIDTH;
 	static const int ORIGINAL_HEIGHT;
 
-#ifdef VITA
+#ifdef __vita__
 	static const int VITA_WIDTH;
 	static const int VITA_HEIGHT;
 #endif

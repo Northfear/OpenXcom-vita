@@ -41,7 +41,7 @@
 #include "Unicode.h"
 #include "../Menu/TestState.h"
 
-#ifdef VITA
+#ifdef __vita__
 #include "SDL12GamepadMappings.h"
 #endif
 
@@ -79,7 +79,7 @@ Game::Game(const std::string &title) : _screen(0), _cursor(0), _lang(0), _save(0
 		initAudio();
 	}
 
-#ifdef VITA
+#ifdef __vita__
 	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
 	{
 		Log(LOG_ERROR) << "Joystick init failed.";
@@ -91,7 +91,6 @@ Game::Game(const std::string &title) : _screen(0), _cursor(0), _lang(0), _save(0
 			gameController = SDL_JoystickOpen(0);
 		}
 	}
-	//controllerPointerSpeed = Options::controllerPointerSpeed / CONTROLLER_SPEED_MOD * (static_cast<float>(Options::displayHeight) / Screen::VITA_HEIGHT);
 #endif
 
 	// trap the mouse inside the window
@@ -140,7 +139,7 @@ Game::~Game()
 		delete *i;
 	}
 
-#ifdef VITA
+#ifdef __vita__
 	if (gameController != nullptr)
 	{
  		SDL_JoystickClose(gameController);
@@ -194,7 +193,7 @@ void Game::run()
 			// Refresh mouse position
 			SDL_Event ev;
 			int x, y;
-#ifdef VITA
+#ifdef __vita__
 			x = pointerPosX;
 			y = pointerPosY;
 #endif
@@ -280,7 +279,7 @@ void Game::run()
 					// re-gain focus on mouse-over or keypress.
 					runningState = RUNNING;
 					// Go on, feed the event to others
-#ifdef VITA
+#ifdef __vita__
 					if (_event.type == SDL_MOUSEMOTION)
 					{
 						pointerPosX = _event.motion.x;
@@ -332,7 +331,7 @@ void Game::run()
 			}
 		}
 
-#ifdef VITA
+#ifdef __vita__
 		ProcessControllerAxisMotion();
 #endif
 		// Process rendering
@@ -390,7 +389,7 @@ void Game::run()
 	Options::save();
 }
 
-#ifdef VITA
+#ifdef __vita__
 void Game::ActivateAction(SDL_Event ev)
 {
 	Action action = Action(&ev, _screen->getXScale(), _screen->getYScale(), _screen->getCursorTopBlackBand(), _screen->getCursorLeftBlackBand());
@@ -459,51 +458,43 @@ void Game::HandleControllerButtonEvent(const SDL_JoyButtonEvent &button)
 		ev.key.state = button.state;
 		ev.key.keysym.mod = KMOD_NONE;
 
-		if (button.button == SDL_CONTROLLER_BUTTON_START)
+		switch(button.button)
 		{
-			ev.key.keysym.sym = SDLK_BACKSPACE;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_BACK)
-		{
-			ev.key.keysym.sym = SDLK_ESCAPE;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_UP)
-		{
-			ev.key.keysym.sym = SDLK_PAGEUP;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_DOWN)
-		{
-			ev.key.keysym.sym = SDLK_PAGEDOWN;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
-		{
-			ev.key.keysym.sym = SDLK_LSHIFT;
-			lShoulderPressed = button.state == SDL_PRESSED;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
-		{
-			ev.key.keysym.sym = SDLK_TAB;
-			rShoulderPressed = button.state == SDL_PRESSED;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_Y)
-		{
-			ev.key.keysym.sym = SDLK_i;
-		} 
-		else if (button.button == SDL_CONTROLLER_BUTTON_X)
-		{
-			ev.key.keysym.sym = SDLK_m;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_LEFT)
-		{
-			ev.key.keysym.sym = SDLK_q;
-		}
-		else if (button.button == SDL_CONTROLLER_BUTTON_DPAD_RIGHT)
-		{
-			ev.key.keysym.sym = SDLK_e;
-		}
-		else
-		{
-			activateAction = false;
+			case SDL_CONTROLLER_BUTTON_START:
+				ev.key.keysym.sym = SDLK_BACKSPACE;
+				break;
+			case SDL_CONTROLLER_BUTTON_BACK:
+				ev.key.keysym.sym = SDLK_ESCAPE;
+				break;
+			case SDL_CONTROLLER_BUTTON_DPAD_UP:
+				ev.key.keysym.sym = SDLK_PAGEUP;
+				break;
+			case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+				ev.key.keysym.sym = SDLK_PAGEDOWN;
+				break;
+			case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+				ev.key.keysym.sym = SDLK_LSHIFT;
+				lShoulderPressed = button.state == SDL_PRESSED;
+				break;
+			case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+				ev.key.keysym.sym = SDLK_TAB;
+				rShoulderPressed = button.state == SDL_PRESSED;
+				break;
+			case SDL_CONTROLLER_BUTTON_Y:
+				ev.key.keysym.sym = SDLK_i;
+				break;
+			case SDL_CONTROLLER_BUTTON_X:
+				ev.key.keysym.sym = SDLK_m;
+				break;
+			case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+				ev.key.keysym.sym = SDLK_q;
+				break;
+			case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+				ev.key.keysym.sym = SDLK_e;
+				break;
+			default:
+				activateAction = false;
+				break;
 		}
 
 		if (lShoulderPressed && rShoulderPressed && !ctrlMod)

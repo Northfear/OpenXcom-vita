@@ -24,7 +24,7 @@
 #include "Engine/Options.h"
 #include "Menu/StartState.h"
 
-#ifdef VITA
+#ifdef __vita__
 #include <psp2/kernel/processmgr.h>
 #include <psp2/power.h>
 
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 	Logger::reportingLevel() = LOG_INFO;
 #endif
 
-#ifdef VITA
+#ifdef __vita__
 	scePowerSetArmClockFrequency(444);
 	scePowerSetBusClockFrequency(222);
 	scePowerSetGpuClockFrequency(222);
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 
 	// Comment this for faster exit.
 	delete game;
-#ifdef VITA
+#ifdef __vita__
 	sceKernelExitProcess(0);
 #endif
 	return EXIT_SUCCESS;

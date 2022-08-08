@@ -489,7 +489,35 @@ if (${CMAKE_SYSTEM_NAME} MATCHES FreeBSD OR ${CMAKE_SYSTEM_NAME} MATCHES NetBSD 
   set ( system_libs -lexecinfo )
 endif ()
 
-target_link_libraries ( openxcom ${system_libs} ${SDLIMAGE_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLGFX_LIBRARY} ${SDL_LIBRARY} ${OPENGL_LIBRARIES} debug ${YAMLCPP_LIBRARY_DEBUG} optimized ${YAMLCPP_LIBRARY} )
+if (VITA)
+  target_link_libraries ( openxcom
+    SDL_image  
+    SDL_mixer
+    SDL_gfx
+    SDL
+    yaml-cpp
+    jpeg
+    png
+    webp
+    FLAC
+    mikmod
+    vorbisfile
+    vorbis
+    ogg
+    pthread
+    z
+    SceGxm_stub
+    SceDisplay_stub
+    SceCommonDialog_stub
+    SceTouch_stub
+    SceAudio_stub
+    SceCtrl_stub
+    SceHid_stub
+    ScePower_stub
+  )
+else()
+  target_link_libraries ( openxcom ${system_libs} ${SDLIMAGE_LIBRARY} ${SDLMIXER_LIBRARY} ${SDLGFX_LIBRARY} ${SDL_LIBRARY} ${OPENGL_LIBRARIES} debug ${YAMLCPP_LIBRARY_DEBUG} optimized ${YAMLCPP_LIBRARY} )
+endif()
 
 # Pack libraries into bundle and link executable appropriately
 if ( APPLE AND CREATE_BUNDLE )

@@ -121,7 +121,7 @@ TextEdit::~TextEdit()
  */
 void TextEdit::handle(Action *action, State *state)
 {
-#ifdef VITA
+#ifdef __vita__
     if (action->getDetails()->type == SDL_JOYBUTTONDOWN)
 	{
 		// check char before the caret
@@ -219,7 +219,7 @@ void TextEdit::setFocus(bool focus, bool modal)
 			_timer->start();
 			if (_modal)
 				_state->setModal(this);
-#ifdef VITA
+#ifdef __vita__
 			std::string convertedText = Unicode::convUtf32ToUtf8(_value);
 			_value.clear();
 			_caretPos = 0;

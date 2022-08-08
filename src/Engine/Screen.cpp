@@ -41,7 +41,7 @@ namespace OpenXcom
 const int Screen::ORIGINAL_WIDTH = 320;
 const int Screen::ORIGINAL_HEIGHT = 200;
 
-#ifdef VITA
+#ifdef __vita__
 const int Screen::VITA_WIDTH = 960;
 const int Screen::VITA_HEIGHT = 544;
 #endif
@@ -79,7 +79,7 @@ void Screen::makeVideoFlags()
 	}
 
 	// Handle window positioning
-#ifndef VITA
+#ifndef __vita__
 	if (!Options::fullscreen && Options::rootWindowedMode)
 	{
 		snprintf(VIDEO_WINDOW_POS, VIDEO_WINDOW_POS_LEN, "SDL_VIDEO_WINDOW_POS=%d,%d", Options::windowedModePositionX, Options::windowedModePositionY);
@@ -120,9 +120,6 @@ void Screen::makeVideoFlags()
  */
 Screen::Screen() : _baseWidth(ORIGINAL_WIDTH), _baseHeight(ORIGINAL_HEIGHT), _scaleX(1.0), _scaleY(1.0), _flags(0), _numColors(0), _firstColor(0), _pushPalette(false), _surface(0)
 {
-#ifdef VITA
-	SDL_VITA_SetWaitGxmFinish(0);
-#endif
 	resetDisplay();
 	memset(deferredPalette, 0, 256*sizeof(SDL_Color));
 }
@@ -483,7 +480,7 @@ void Screen::resetDisplay(bool resetVideo)
 		setPalette(getPalette());
 	}
 
-#ifdef VITA
+#ifdef __vita__
 	SDL_VITA_SetVideoModeBilinear(Options::useBilinearFilter);
 	//center/scale non fullscreen resolutions
     if (width != VITA_WIDTH || height != VITA_HEIGHT)

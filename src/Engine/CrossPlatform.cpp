@@ -69,7 +69,7 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <pwd.h>
-#ifndef VITA
+#ifndef __vita__
 #include <execinfo.h>
 #include <dlfcn.h>
 #endif
@@ -143,7 +143,7 @@ void showError(const std::string &error)
  */
 static char const *getHome()
 {
-#ifdef VITA
+#ifdef __vita__
 	return "ux0:data/OpenXcom/";
 #else
 	char const *home = getenv("HOME");
@@ -431,8 +431,11 @@ bool createFolder(const std::string &path)
 	else
 		return true;
 #elif defined(VITA)
-	int result = sceIoMkdir(path.c_str(), 0777);
-	return result == 0;
+	int result = mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	if (result == 0)
+		return true;
+	else
+		return false;
 #else
 	mode_t process_mask = umask(0);
 	int result = mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
