@@ -31,6 +31,8 @@ namespace OpenXcom
  */
 RuleTerrain::RuleTerrain(const std::string &name) : _name(name), _script("DEFAULT"), _minDepth(0), _maxDepth(0), _ambience(-1), _ambientVolume(0.5)
 {
+	_civilianTypes.push_back("MALE_CIVILIAN");
+	_civilianTypes.push_back("FEMALE_CIVILIAN");
 }
 
 /**
@@ -61,6 +63,10 @@ void RuleTerrain::load(const YAML::Node &node, Mod *mod)
 	}
 	if (const YAML::Node &map = node["mapBlocks"])
 	{
+		for (std::vector<MapBlock*>::iterator i = _mapBlocks.begin(); i != _mapBlocks.end(); ++i)
+		{
+			delete *i;
+		}
 		_mapBlocks.clear();
 		for (YAML::const_iterator i = map.begin(); i != map.end(); ++i)
 		{
@@ -73,11 +79,6 @@ void RuleTerrain::load(const YAML::Node &node, Mod *mod)
 	if (const YAML::Node &civs = node["civilianTypes"])
 	{
 		_civilianTypes = civs.as<std::vector<std::string> >(_civilianTypes);
-	}
-	else
-	{
-		_civilianTypes.push_back("MALE_CIVILIAN");
-		_civilianTypes.push_back("FEMALE_CIVILIAN");
 	}
 	for (YAML::const_iterator i = node["music"].begin(); i != node["music"].end(); ++i)
 	{

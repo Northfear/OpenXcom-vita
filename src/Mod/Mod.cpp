@@ -18,6 +18,7 @@
  */
 #include "Mod.h"
 #include <algorithm>
+#include <functional>
 #include <sstream>
 #include <climits>
 #include <cassert>
@@ -917,7 +918,7 @@ void Mod::loadAll(const std::vector< std::pair< std::string, std::vector<std::st
 	{
 		_modCurrent = &_modData.at(i);
 		const ModInfo *info = _modCurrent->info;
-		if (info->isMaster() && !info->getResourceConfigFile().empty())
+		if (!info->getResourceConfigFile().empty())
 		{
 			std::string path = info->getPath() + "/" + info->getResourceConfigFile();
 			if (CrossPlatform::fileExists(path))
@@ -1617,6 +1618,7 @@ T *Mod::loadRule(const YAML::Node &node, std::map<std::string, T*> *map, std::ve
 		typename std::map<std::string, T*>::iterator i = map->find(type);
 		if (i != map->end())
 		{
+			delete i->second;
 			map->erase(i);
 		}
 		if (index != 0)
