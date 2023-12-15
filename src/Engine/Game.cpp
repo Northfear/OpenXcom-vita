@@ -43,6 +43,9 @@
 
 #ifdef __vita__
 #include "SDL12GamepadMappings.h"
+
+float pointerPosX = 0;
+float pointerPosY = 0;
 #endif
 
 namespace OpenXcom
@@ -194,10 +197,10 @@ void Game::run()
 			SDL_Event ev;
 			int x, y;
 #ifdef __vita__
-			x = pointerPosX;
-			y = pointerPosY;
-#endif
+			SDL_GetMouseState_Vita(&x, &y);
+#else
 			SDL_GetMouseState(&x, &y);
+#endif
 			ev.type = SDL_MOUSEMOTION;
 			ev.motion.x = x;
 			ev.motion.y = y;
@@ -390,6 +393,14 @@ void Game::run()
 }
 
 #ifdef __vita__
+Uint8 SDL_GetMouseState_Vita(int *x, int *y)
+{
+	*x = static_cast<int>(pointerPosX);
+	*y = static_cast<int>(pointerPosY);
+
+	return SDL_GetMouseState(0 ,0);
+}
+
 void Game::ActivateAction(SDL_Event ev)
 {
 	Action action = Action(&ev, _screen->getXScale(), _screen->getYScale(), _screen->getCursorTopBlackBand(), _screen->getCursorLeftBlackBand());
@@ -510,7 +521,9 @@ void Game::HandleControllerButtonEvent(const SDL_JoyButtonEvent &button)
 	}
 
 	if (activateAction)
+	{
 		ActivateAction(ev);
+	}
 }
 
 void Game::ProcessControllerAxisMotion()

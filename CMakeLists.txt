@@ -215,12 +215,9 @@ endif ()
 
 if(VITA)
     add_definitions(-DVITA)
-    # startup crash with -fsplit-loops on GCC 10.3
-    set(VITA_FLAGS "-O3 -mcpu=cortex-a9 -mfpu=neon -fgraphite-identity -floop-nest-optimize -flto -fno-split-loops")
+    set(VITA_FLAGS "-O3 -mcpu=cortex-a9 -mfpu=neon -fgraphite-identity -floop-nest-optimize -flto")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VITA_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VITA_FLAGS}")
-    set(VITA_LIBS "-fno-builtin-memcpy -fno-builtin-memset -fno-builtin-memmove -fno-builtin-memcmp")
-    SET(CMAKE_CXX_STANDARD_LIBRARIES "${VITA_LIBS}")
 endif()
 
 add_subdirectory ( docs )

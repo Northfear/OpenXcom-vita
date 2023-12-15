@@ -32,6 +32,10 @@ class SavedGame;
 class Mod;
 class FpsCounter;
 
+#ifdef __vita__
+Uint8 SDL_GetMouseState_Vita(int *x, int *y);
+#endif
+
 /**
  * The core of the game engine, manages the game's entire contents and structure.
  * Takes care of encapsulating all the core SDL commands, provides access to all
@@ -80,8 +84,6 @@ private:
     int16_t controllerRightXAxis = 0;
     int16_t controllerRightYAxis = 0;
 	uint32_t lastControllerTime = 0;
-	float pointerPosX = 0;
-	float pointerPosY = 0;
 	bool leftScrollActive = false;
 	bool rightScrollActive = false;
 	bool upScrollActive = false;
