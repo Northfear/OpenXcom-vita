@@ -483,17 +483,17 @@ void Screen::resetDisplay(bool resetVideo)
 #ifdef __vita__
 	SDL_VITA_SetVideoModeBilinear(Options::useBilinearFilter);
 	//center/scale non fullscreen resolutions
-    if (width != VITA_WIDTH || height != VITA_HEIGHT)
+	if (width != VITA_WIDTH || height != VITA_HEIGHT)
 	{
 		SDL_Rect renderRect;
-        renderRect.x = 0;
-        renderRect.y = 0;
+		renderRect.x = 0;
+		renderRect.y = 0;
 		renderRect.w = width;
 		renderRect.h = height;
 
-        if (Options::fullscreen)
+		if (Options::fullscreen)
 		{
-            //resize to fullscreen
+			//resize to fullscreen
 			if ((static_cast<float>(VITA_WIDTH) / VITA_HEIGHT) >= (static_cast<float>(width) / height))
 			{
 				float scale = static_cast<float>(VITA_HEIGHT) / height;
@@ -508,15 +508,15 @@ void Screen::resetDisplay(bool resetVideo)
 				renderRect.h = height * scale;
 				renderRect.y = (VITA_HEIGHT - renderRect.h) / 2;
 			}
-        }
+		}
 		else
 		{
-            //center game area
-            renderRect.x = (VITA_WIDTH - width) / 2;
-            renderRect.y = (VITA_HEIGHT - height) / 2;
-        }
+			//center game area
+			renderRect.x = (VITA_WIDTH - width) / 2;
+			renderRect.y = (VITA_HEIGHT - height) / 2;
+		}
 		SDL_VITA_SetVideoModeScaling(renderRect.x, renderRect.y, renderRect.w, renderRect.h);
-    }
+	}
 #endif
 }
 
