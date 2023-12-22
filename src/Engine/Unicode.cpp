@@ -49,7 +49,7 @@ std::locale utf8;
 void getUtf8Locale()
 {
 	std::string loc;
-#if !defined(_WIN32) && !defined(VITA)
+#if !defined(_WIN32) && !defined(__vita__)
 	// Find any UTF-8 locale
 	FILE *fp = popen("locale -a", "r");
 	if (fp != NULL)

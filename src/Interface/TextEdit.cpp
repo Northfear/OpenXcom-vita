@@ -26,7 +26,7 @@
 namespace OpenXcom
 {
 
-#if defined(VITA)
+#if defined(__vita__)
 #include "../Engine/SDL12GamepadMappings.h"
 
 const int totalCharactersDPad = 53;
@@ -122,7 +122,7 @@ TextEdit::~TextEdit()
 void TextEdit::handle(Action *action, State *state)
 {
 #ifdef __vita__
-    if (action->getDetails()->type == SDL_JOYBUTTONDOWN)
+	if (action->getDetails()->type == SDL_JOYBUTTONDOWN)
 	{
 		// check char before the caret
 		if ( _caretPos > 0 )

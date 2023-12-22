@@ -71,8 +71,8 @@
 #include <pwd.h>
 #ifndef __vita__
 #include <execinfo.h>
-#include <dlfcn.h>
 #endif
+#include <dlfcn.h>
 #include <cxxabi.h>
 #include "Unicode.h"
 #endif
@@ -447,7 +447,7 @@ bool createFolder(const std::string &path)
 		return false;
 	else
 		return true;
-#elif defined(VITA)
+#elif defined(__vita__)
 	int result = mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	if (result == 0)
 		return true;
@@ -1075,9 +1075,9 @@ void stackTrace(void *ctx)
 #else
 	Log(LOG_FATAL) << "Unfortunately, no stack trace information is available";
 #endif
-#elif __CYGWIN__
+#elif defined(__CYGWIN__) || defined(__vita__)
 	Log(LOG_FATAL) << "Unfortunately, no stack trace information is available";
-#elif !defined(VITA)
+#else    /* not _WIN32 or __CYGWIN__ */
 	void *frames[32];
 	char buf[1024];
 	int  frame_count = backtrace(frames, 32);

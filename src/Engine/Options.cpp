@@ -65,7 +65,7 @@ void create()
 	_info.push_back(OptionInfo("fullscreen", &fullscreen, true));
 	_info.push_back(OptionInfo("asyncBlit", &asyncBlit, false));
 	_info.push_back(OptionInfo("keyboardMode", (int*)&keyboardMode, KEYBOARD_OFF));
-#elif VITA
+#elif __vita__
 	_info.push_back(OptionInfo("displayWidth", &displayWidth, Screen::VITA_WIDTH / 2));
 	_info.push_back(OptionInfo("displayHeight", &displayHeight, Screen::VITA_HEIGHT / 2));
 	_info.push_back(OptionInfo("fullscreen", &fullscreen, true));

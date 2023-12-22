@@ -412,34 +412,34 @@ void Game::ActivateAction(SDL_Event ev)
 
 void Game::HandleControllerAxisEvent(const SDL_JoyAxisEvent &motion)
 {
-    if (motion.axis == SDL_CONTROLLER_AXIS_LEFTX)
+	if (motion.axis == SDL_CONTROLLER_AXIS_LEFTX)
 	{
-        if (std::abs(motion.value) > CONTROLLER_L_DEADZONE)
-            controllerLeftXAxis = motion.value;
-        else
-            controllerLeftXAxis = 0;
-    }
-    else if (motion.axis == SDL_CONTROLLER_AXIS_LEFTY)
+		if (std::abs(motion.value) > CONTROLLER_L_DEADZONE)
+			controllerLeftXAxis = motion.value;
+		else
+			controllerLeftXAxis = 0;
+	}
+	else if (motion.axis == SDL_CONTROLLER_AXIS_LEFTY)
 	{
-        if (std::abs(motion.value) > CONTROLLER_L_DEADZONE)
-            controllerLeftYAxis = motion.value;
-        else
-            controllerLeftYAxis = 0;
-    }
-    else if (motion.axis == SDL_CONTROLLER_AXIS_RIGHTX)
+		if (std::abs(motion.value) > CONTROLLER_L_DEADZONE)
+			controllerLeftYAxis = motion.value;
+		else
+			controllerLeftYAxis = 0;
+	}
+	else if (motion.axis == SDL_CONTROLLER_AXIS_RIGHTX)
 	{
-        if (std::abs(motion.value) > CONTROLLER_R_DEADZONE)
-            controllerRightXAxis = motion.value;
-        else
-            controllerRightXAxis = 0;
-    }
-    else if (motion.axis == SDL_CONTROLLER_AXIS_RIGHTY)
+		if (std::abs(motion.value) > CONTROLLER_R_DEADZONE)
+			controllerRightXAxis = motion.value;
+		else
+			controllerRightXAxis = 0;
+	}
+	else if (motion.axis == SDL_CONTROLLER_AXIS_RIGHTY)
 	{
-        if (std::abs(motion.value) > CONTROLLER_R_DEADZONE)
-            controllerRightYAxis = motion.value;
-        else
-            controllerRightYAxis = 0;
-    }
+		if (std::abs(motion.value) > CONTROLLER_R_DEADZONE)
+			controllerRightYAxis = motion.value;
+		else
+			controllerRightYAxis = 0;
+	}
 }
 
 void Game::HandleControllerButtonEvent(const SDL_JoyButtonEvent &button)

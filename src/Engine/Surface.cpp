@@ -75,7 +75,7 @@ inline void* NewAligned(int bpp, int width, int height)
 
 #ifndef _WIN32
 
-	#if defined(__MORPHOS__) || defined (VITA)
+	#if defined(__MORPHOS__) || defined (__vita__)
 
 	buffer = calloc( total, 1 );
 	if (!buffer)
