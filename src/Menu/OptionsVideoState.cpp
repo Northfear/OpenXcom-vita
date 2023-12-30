@@ -210,6 +210,10 @@ OptionsVideoState::OptionsVideoState(OptionsOrigin origin) : OptionsBaseState(or
 	filterNames.push_back("Scale");
 	filterNames.push_back("HQx");
 	filterNames.push_back("xBRZ");
+#ifdef __vita__
+	filterNames.push_back("Bilinear");
+	_filters.push_back("");
+#endif
 	_filters.push_back("");
 	_filters.push_back("");
 	_filters.push_back("");
@@ -255,6 +259,12 @@ OptionsVideoState::OptionsVideoState(OptionsOrigin origin) : OptionsBaseState(or
 	{
 		selFilter = 3;
 	}
+#ifdef __vita__
+	else if (Options::useBilinearFilter)
+	{
+		selFilter = 4;
+	}
+#endif
 
 	_txtFilter->setText(tr("STR_DISPLAY_FILTER"));
 
@@ -505,30 +515,54 @@ void OptionsVideoState::cbxFilterChange(Action *)
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = false;
+#ifdef __vita__
+		Options::newBilinearFilter = false;
+#endif
 		break;
 	case 1:
 		Options::newOpenGL = false;
 		Options::newScaleFilter = true;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = false;
+#ifdef __vita__
+		Options::newBilinearFilter = false;
+#endif
 		break;
 	case 2:
 		Options::newOpenGL = false;
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = true;
 		Options::newXBRZFilter = false;
+#ifdef __vita__
+		Options::newBilinearFilter = false;
+#endif
 		break;
 	case 3:
 		Options::newOpenGL = false;
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = true;
+#ifdef __vita__
+		Options::newBilinearFilter = false;
+#endif
 		break;
+#ifdef __vita__
+	case 4:
+		Options::newOpenGL = false;
+		Options::newScaleFilter = false;
+		Options::newHQXFilter = false;
+		Options::newXBRZFilter = false;
+		Options::newBilinearFilter = true;
+		break;
+#endif
 	default:
 		Options::newOpenGL = true;
 		Options::newScaleFilter = false;
 		Options::newHQXFilter = false;
 		Options::newXBRZFilter = false;
+#ifdef __vita__
+		Options::newBilinearFilter = false;
+#endif
 		Options::newOpenGLShader = _filters[_cbxFilter->getSelected()];
 		break;
 	}

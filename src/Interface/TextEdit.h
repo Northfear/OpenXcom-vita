@@ -49,6 +49,9 @@ private:
 	bool exceedsMaxWidth(UCode c) const;
 	/// Checks if character is valid to be inserted at caret position.
 	bool isValidChar(UCode c) const;
+#ifdef __vita__
+	void EmulateKeyEvent(Action *action, State *state, SDLKey key, Uint16 unicode);
+#endif
 public:
 	/// Creates a new text edit with the specified size and position.
 	TextEdit(State *state, int width, int height, int x = 0, int y = 0);

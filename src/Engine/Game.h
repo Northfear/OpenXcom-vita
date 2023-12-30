@@ -34,6 +34,10 @@ class ModInfo;
 class FpsCounter;
 class Action;
 
+#ifdef __vita__
+Uint8 SDL_GetMouseState_Vita(int *x, int *y);
+#endif
+
 /**
  * The core of the game engine, manages the game's entire contents and structure.
  * Takes care of encapsulating all the core SDL commands, provides access to all
@@ -57,6 +61,40 @@ private:
 	int _timeUntilNextFrame;
 	bool _ctrl, _alt, _shift, _rmb, _mmb;
 	static const double VOLUME_GRADIENT;
+
+#ifdef __vita__
+	void HandleControllerAxisEvent(const SDL_JoyAxisEvent &motion);
+	void HandleControllerButtonEvent(const SDL_JoyButtonEvent &button);
+	void ProcessControllerAxisMotion();
+	void ActivateAction(SDL_Event ev);
+
+	enum
+	{
+		CONTROLLER_L_DEADZONE = 3000,
+		CONTROLLER_R_DEADZONE = 25000
+	};
+
+	// used to convert user-friendly pointer speed values into more useable ones
+	const double CONTROLLER_SPEED_MOD = 2000000.0;
+	double controllerPointerSpeed = 10.0 / CONTROLLER_SPEED_MOD;
+
+	// bigger value correndsponds to faster pointer movement speed with bigger stick axis values
+	const double CONTROLLER_AXIS_SPEEDUP = 1.03;
+
+	SDL_Joystick *gameController = nullptr;
+	int16_t controllerLeftXAxis = 0;
+	int16_t controllerLeftYAxis = 0;
+	int16_t controllerRightXAxis = 0;
+	int16_t controllerRightYAxis = 0;
+	uint32_t lastControllerTime = 0;
+	bool leftScrollActive = false;
+	bool rightScrollActive = false;
+	bool upScrollActive = false;
+	bool downScrollActive = false;
+	bool lShoulderPressed = false;
+	bool rShoulderPressed = false;
+	bool ctrlMod = false;
+#endif
 
 public:
 	/// Creates a new game and initializes SDL.

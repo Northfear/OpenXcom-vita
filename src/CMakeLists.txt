@@ -421,7 +421,17 @@ set ( cxx_src
 set ( c_src
   ../libs/miniz/miniz.c
 )
-set_property ( SOURCE ${c_src} APPEND PROPERTY COMPILE_DEFINITIONS MINIZ_NO_STDIO )
+
+if(VITA)
+  set ( cxx_src
+    ${cxx_src}
+    vita/vita_memory.c
+  )
+  set_property ( SOURCE ${c_src} APPEND PROPERTY COMPILE_DEFINITIONS )
+else(VITA)
+  set_property ( SOURCE ${c_src} APPEND PROPERTY COMPILE_DEFINITIONS MINIZ_NO_STDIO )
+endif(VITA)
+
 set_property ( SOURCE Engine/Scalers/xbrz.cpp APPEND_STRING PROPERTY COMPILE_FLAGS -Wno-unused\ )
 
 set ( data_install_dir bin )
@@ -587,7 +597,35 @@ if (WIN32)
   set(WIN32_LIBS imagehlp dbghelp)
 endif(WIN32)
 
-target_link_libraries ( openxcom ${system_libs} ${PKG_DEPS_LDFLAGS} ${WIN32_LIBS} )
+if (VITA)
+  target_link_libraries ( openxcom
+    SDL_image  
+    SDL_mixer
+    SDL_gfx
+    SDL
+    yaml-cpp
+    jpeg
+    png
+    webp
+    FLAC
+    mikmod
+    vorbisfile
+    vorbis
+    ogg
+    pthread
+    z
+    SceGxm_stub
+    SceDisplay_stub
+    SceCommonDialog_stub
+    SceTouch_stub
+    SceAudio_stub
+    SceCtrl_stub
+    SceHid_stub
+    ScePower_stub
+  )
+else()
+  target_link_libraries ( openxcom ${system_libs} ${PKG_DEPS_LDFLAGS} ${WIN32_LIBS} )
+endif()
 
 # Pack libraries into bundle and link executable appropriately
 if ( APPLE AND CREATE_BUNDLE )

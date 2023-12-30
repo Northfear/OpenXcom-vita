@@ -134,3 +134,9 @@ OPT int newDisplayWidth, newDisplayHeight, newBattlescapeScale, newGeoscapeScale
 OPT std::string newOpenGLShader;
 OPT std::vector< std::pair<std::string, bool> > mods; // ordered list of available mods (lowest priority to highest) and whether they are active
 OPT SoundFormat currentSound;
+
+#ifdef __vita__
+OPT bool useBilinearFilter;
+OPT bool newBilinearFilter;
+OPT int controllerPointerSpeed;
+#endif

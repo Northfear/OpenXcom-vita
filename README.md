@@ -1,3 +1,72 @@
+# OpenXcom Extended port for PS Vita
+
+## Install
+Download oxce.vpk from https://github.com/Northfear/OpenXcom-vita/releases and install it to your PS Vita.
+
+Download oxce-data.zip from https://github.com/Northfear/OpenXcom-vita/releases, extract it and copy ```OXCE``` folder into ```ux0:data/```.
+
+Copy content of installed Enemy Unknown folder into ```ux0:data/OXCE/UFO``` or/and installed Terror From The Deep into ```ux0:data/OXCE/TFTD```. Check README.txt UFO/TFTD for details about exact game folders that need to be copied.
+
+[rePatch reDux0](https://github.com/dots-tb/rePatch-reDux0) OR [FdFix](https://github.com/TheOfficialFloW/FdFix) plugin may be required for proper suspend/resume support (only use one at a time).
+
+## Building
+
+### Prerequisites
+- VitaSDK
+- [SDL 1.2](https://github.com/Northfear/SDL-1.2-vita)
+- SDL_mixer
+- SDL_gfx
+- SDL_image
+- yaml-cpp
+
+### Build
+```
+mkdir build && cd build
+cmake .. -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -DCMAKE_BUILD_TYPE=None
+make
+```
+
+## Port info
+
+### Controls
+
+- Left analog stick - Cursor movement
+- Right analog stick - Map/Globe scrolling
+- × - Left mouse button
+- ○ - Right mouse button
+- □ - Open Map
+- △ - Inventory
+- D-Pad Up/Down - Switch between floors
+- D-Pad Right/Left - Use item in right/left hand
+- L1 - Select Previous Unit
+- R1 - Select Next Unit
+- SELECT - Esc
+- START - End turn
+- R1 + L1 - Ctrl emulation (force fire, strafe with alternative movement on)
+- □ + D-Pad Left - Force open on-screen keyboard
+
+Buttons can be remapped in the "Controls" options menu.
+
+Cursor movement speed can be changed by editing the ```controllerPointerSpeed``` option in ```ux0:data/OXCE/options.cfg```.
+
+### Mod support
+
+RAM is pretty limited on Vita, so there's a chance that game would just crash with heavy mods installed (XPiratez, 40k, etc).
+
+Startup time for big mods can take a few minutes.
+
+It's _highly_ recomended to use archived mods (by placing zip file of the mod inside ```ux0:data/OXCE/mods/```), since their loading times are MUCH lower (The X-Com Files 3.1 startup time is 4 minutes for zip file vs 15 minutes for extracted mod).
+
+### Other
+
+You can change game resolution in the "Video" options menu.
+
+320x200 provides the best performance. 480x272 with Display Mode set to "Fullscreen" and Geoscape Scale/Battlescape Scale set to "Full Display" provides great visuals (x2 pixel scaling) while still having good performance.
+
+"Fullscreen" display mode scales game surface to fullscreen. "Windowed" mode centers the game area w/o scaling it.
+
+You can skip intros by tapping on screen.
+
 # OpenXcom [![Workflow Status][workflow-badge]][actions-url]
 
 [workflow-badge]: https://github.com/OpenXcom/OpenXcom/workflows/ci/badge.svg

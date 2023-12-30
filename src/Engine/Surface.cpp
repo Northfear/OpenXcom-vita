@@ -118,7 +118,7 @@ Surface::UniqueBufferPtr Surface::NewAlignedBuffer(int bpp, int width, int heigh
 
 #ifndef _WIN32
 
-	#ifdef __MORPHOS__
+	#if defined(__MORPHOS__) || defined (__vita__)
 
 	buffer = calloc( total, 1 );
 	if (!buffer)

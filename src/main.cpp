@@ -29,6 +29,18 @@
 #include "Menu/StartState.h"
 #include "Engine/Collections.h"
 
+#ifdef __vita__
+#include <psp2/kernel/processmgr.h>
+#include <psp2/power.h>
+extern "C"
+{
+#include "vita/vita_memory.h"
+}
+
+int _newlib_heap_size_user = 275 * 1024 * 1024;
+char vitaPath[] = "ux0:data/OXCE/";
+#endif
+
 /** @mainpage
  * @author OpenXcom Developers
  *
@@ -92,6 +104,25 @@ Game *game = 0;
 // programming license revoked...
 int main(int argc, char *argv[])
 {
+#ifdef __vita__
+	init_vita_memory();
+
+	scePowerSetArmClockFrequency(444);
+	scePowerSetBusClockFrequency(222);
+	scePowerSetGpuClockFrequency(222);
+	scePowerSetGpuXbarClockFrequency(166);
+
+	char *vitaArgv[7];
+	vitaArgv[1] = "-data";
+	vitaArgv[2] = vitaPath;
+	vitaArgv[3] = "-user";
+	vitaArgv[4] = vitaPath;
+	vitaArgv[5] = "-cfg";
+	vitaArgv[6] = vitaPath;
+	argv = vitaArgv;
+	argc = 7;
+#endif
+
 #ifndef DUMP_CORE
 #ifdef _MSC_VER
 	// Uncomment to check memory leaks in VS
@@ -134,6 +165,10 @@ int main(int argc, char *argv[])
 	{
 		CrossPlatform::startUpdateProcess();
 	}
+
+#ifdef __vita__
+	sceKernelExitProcess(0);
+#endif
 
 	return EXIT_SUCCESS;
 }

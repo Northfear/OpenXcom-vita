@@ -58,6 +58,11 @@ public:
 	static const int ORIGINAL_WIDTH;
 	static const int ORIGINAL_HEIGHT;
 
+#ifdef __vita__
+	static const int VITA_WIDTH;
+	static const int VITA_HEIGHT;
+#endif
+
 	/// Creates a new display screen.
 	Screen();
 	/// Cleans up the display screen.

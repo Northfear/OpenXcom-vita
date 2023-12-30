@@ -75,7 +75,9 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <pwd.h>
+#ifndef __vita__
 #include <execinfo.h>
+#endif
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <dirent.h>
@@ -211,6 +213,9 @@ void showError(const std::string &error)
  */
 static char const *getHome()
 {
+#ifdef __vita__
+	return "ux0:data/OXCE/";
+#else
 	char const *home = getenv("HOME");
 	if (!home)
 	{
@@ -218,6 +223,7 @@ static char const *getHome()
 		home = pwd->pw_dir;
 	}
 	return home;
+#endif
 }
 #endif
 
@@ -524,6 +530,12 @@ bool createFolder(const std::string &path)
 		return false;
 	else
 		return true;
+#elif defined(__vita__)
+	int result = mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	if (result == 0)
+		return true;
+	else
+		return false;
 #else
 	mode_t process_mask = umask(0);
 	int result = mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -1324,7 +1336,7 @@ void stackTrace(void *ctx)
 # else /* __NO_DBGHELP */
 	Log(LOG_FATAL) << "Unfortunately, no stack trace information is available";
 # endif
-#elif __CYGWIN__
+#elif defined(__CYGWIN__) || defined(__vita__)
 	Log(LOG_FATAL) << "Unfortunately, no stack trace information is available";
 #else    /* not _WIN32 or __CYGWIN__ */
 	void *frames[32];

@@ -68,6 +68,12 @@ void create()
 	_info.push_back(OptionInfo("fullscreen", &fullscreen, true));
 	_info.push_back(OptionInfo("asyncBlit", &asyncBlit, false));
 	_info.push_back(OptionInfo("keyboardMode", (int*)&keyboardMode, KEYBOARD_OFF));
+#elif __vita__
+	_info.push_back(OptionInfo("displayWidth", &displayWidth, Screen::VITA_WIDTH / 2));
+	_info.push_back(OptionInfo("displayHeight", &displayHeight, Screen::VITA_HEIGHT / 2));
+	_info.push_back(OptionInfo("fullscreen", &fullscreen, true));
+	_info.push_back(OptionInfo("asyncBlit", &asyncBlit, true));
+	_info.push_back(OptionInfo("keyboardMode", (int*)&keyboardMode, KEYBOARD_ON));
 #else
 	_info.push_back(OptionInfo("displayWidth", &displayWidth, Screen::ORIGINAL_WIDTH*2));
 	_info.push_back(OptionInfo("displayHeight", &displayHeight, Screen::ORIGINAL_HEIGHT*2));
@@ -86,8 +92,14 @@ void create()
 	//_info.push_back(OptionInfo("baseYGeoscape", &baseYGeoscape, Screen::ORIGINAL_HEIGHT));
 	//_info.push_back(OptionInfo("baseXBattlescape", &baseXBattlescape, Screen::ORIGINAL_WIDTH));
 	//_info.push_back(OptionInfo("baseYBattlescape", &baseYBattlescape, Screen::ORIGINAL_HEIGHT));
+#ifdef __vita__
+	_info.push_back(OptionInfo("geoscapeScale", &geoscapeScale, 5));
+	_info.push_back(OptionInfo("battlescapeScale", &battlescapeScale, 5));
+	_info.push_back(OptionInfo("useBilinearFilter", &useBilinearFilter, false));
+#else
 	_info.push_back(OptionInfo("geoscapeScale", &geoscapeScale, 0));
 	_info.push_back(OptionInfo("battlescapeScale", &battlescapeScale, 0));
+#endif
 	_info.push_back(OptionInfo("useScaleFilter", &useScaleFilter, false));
 	_info.push_back(OptionInfo("useHQXFilter", &useHQXFilter, false));
 	_info.push_back(OptionInfo("useXBRZFilter", &useXBRZFilter, false));
@@ -318,7 +330,11 @@ void create()
 	_info.push_back(OptionInfo("keyBattleLevelUp", &keyBattleLevelUp, SDLK_PAGEUP, "STR_VIEW_LEVEL_ABOVE", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo("keyBattleLevelDown", &keyBattleLevelDown, SDLK_PAGEDOWN, "STR_VIEW_LEVEL_BELOW", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo("keyBattleCenterUnit", &keyBattleCenterUnit, SDLK_HOME, "STR_CENTER_SELECTED_UNIT", "STR_BATTLESCAPE"));
+#ifdef __vita
+	_info.push_back(OptionInfo("keyBattlePrevUnit", &keyBattlePrevUnit, SDLK_BACKQUOTE, "STR_PREVIOUS_UNIT", "STR_BATTLESCAPE")); // different default in OXCE
+#else
 	_info.push_back(OptionInfo("keyBattlePrevUnit", &keyBattlePrevUnit, SDLK_UNKNOWN, "STR_PREVIOUS_UNIT", "STR_BATTLESCAPE")); // different default in OXCE
+#endif
 	_info.push_back(OptionInfo("keyBattleNextUnit", &keyBattleNextUnit, SDLK_TAB, "STR_NEXT_UNIT", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo("keyBattleDeselectUnit", &keyBattleDeselectUnit, SDLK_BACKSLASH, "STR_DESELECT_UNIT", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo("keyBattleUseLeftHand", &keyBattleUseLeftHand, SDLK_q, "STR_USE_LEFT_HAND", "STR_BATTLESCAPE"));
@@ -420,6 +436,9 @@ void create()
 	_info.push_back(OptionInfo("vSyncForOpenGL", &vSyncForOpenGL, true, "STR_VSYNC_FOR_OPENGL", "STR_GENERAL")); // exposed in OXCE
 #endif
 
+#ifdef __vita__
+	_info.push_back(OptionInfo("controllerPointerSpeed", &controllerPointerSpeed, 10));
+#endif
 }
 
 // we can get fancier with these detection routines, but for now just look for
@@ -1276,6 +1295,9 @@ void backupDisplay()
 	Options::newFullscreen = Options::fullscreen;
 	Options::newAllowResize = Options::allowResize;
 	Options::newBorderless = Options::borderless;
+#ifdef __vita__
+	Options::newBilinearFilter = Options::useBilinearFilter;
+#endif
 }
 
 /**
@@ -1299,6 +1321,9 @@ void switchDisplay()
 	std::swap(fullscreen, newFullscreen);
 	std::swap(allowResize, newAllowResize);
 	std::swap(borderless, newBorderless);
+#ifdef __vita__
+	std::swap(useBilinearFilter, newBilinearFilter);
+#endif
 }
 
 }

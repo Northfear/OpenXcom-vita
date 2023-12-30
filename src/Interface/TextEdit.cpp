@@ -95,6 +95,12 @@ void TextEdit::setFocus(bool focus, bool modal)
 			_timer->start();
 			if (_modal)
 				_state->setModal(this);
+#ifdef __vita__
+			std::string convertedText = Unicode::convUtf32ToUtf8(_value);
+			_value.clear();
+			_caretPos = 0;
+			SDL_VITA_ShowScreenKeyboard(convertedText.c_str(), false);
+#endif
 		}
 		else
 		{

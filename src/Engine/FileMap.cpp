@@ -49,8 +49,16 @@
 #include "Options.h"
 #include "Exception.h"
 
+#ifndef __vita__
 #define MINIZ_NO_STDIO
+#endif
 #include "../../libs/miniz/miniz.h"
+
+#ifdef __vita__
+const size_t BUFFER_SIZE = 12 * 1024 * 1024;
+const char TEMP_FILE_PATH[] = "ux0:data/OXCE/temp_extr_file";
+char *data_buffer = nullptr;
+#endif
 
 extern "C"
 {
@@ -65,6 +73,31 @@ int mzops_close(struct SDL_RWops *context) {
 	return 0;
 }
 SDL_RWops *SDL_RWFromMZ(mz_zip_archive *zip, mz_uint file_index) {
+#ifdef __vita__
+	// extract into dedicated buffer on Vita, since mz_zip_reader_extract_to_heap results in running out of mem
+	if (!data_buffer)
+	{
+		data_buffer = new char[BUFFER_SIZE];
+	}
+
+	mz_zip_archive_file_stat zip_stat;
+	memset(&zip_stat, 0, sizeof(mz_zip_archive_file_stat));
+	if (mz_zip_reader_file_stat((mz_zip_archive *)zip, file_index, &zip_stat))
+	{
+		if ((BUFFER_SIZE >= zip_stat.m_uncomp_size) && mz_zip_reader_extract_to_mem((mz_zip_archive *)zip, file_index, data_buffer, zip_stat.m_uncomp_size, 0))
+		{
+			SDL_RWops *rv = SDL_RWFromMem(data_buffer, zip_stat.m_uncomp_size);
+			return rv;
+		}
+	}
+
+	// fallback to temporary file if mem extraction failed (file was too big probably)
+	if (mz_zip_reader_extract_to_file((mz_zip_archive *)zip, file_index, TEMP_FILE_PATH, 0))
+	{
+		SDL_RWops *rv = SDL_RWFromFile(TEMP_FILE_PATH, "rb");
+		return rv;
+	}
+#endif
 	size_t size;
 	void *data = mz_zip_reader_extract_to_heap(zip, file_index, &size, 0);
 	if (data == NULL) {
@@ -225,6 +258,41 @@ SDL_RWops *FileRecord::getRWopsReadAll() const
 	if (zip != NULL)
 	{
 		rv = SDL_RWFromMZ((mz_zip_archive *)zip, findex);
+#ifdef __vita__
+		if (rv)
+		{
+			mz_zip_archive_file_stat zip_stat;
+			memset(&zip_stat, 0, sizeof(mz_zip_archive_file_stat));
+			if (mz_zip_reader_file_stat((mz_zip_archive *)zip, findex, &zip_stat) && (BUFFER_SIZE < zip_stat.m_uncomp_size))
+			{
+				size_t size = 0;
+				auto data = SDL_LoadFile_RW(rv, &size, SDL_TRUE);
+				if (data)
+				{
+					rv = SDL_RWFromConstMem(data, size);
+
+					//close callback
+					rv->close = [](struct SDL_RWops *context)
+					{
+						if (context)
+						{
+							//HACK: technically speaking `hidden` is an implementation detail, but we need to use it to deallocate memory (similar to `mzops_close`)
+							if (context->hidden.mem.base)
+							{
+								SDL_free(context->hidden.mem.base);
+							}
+							SDL_FreeRW(context);
+						}
+						return 0;
+					};
+				}
+				else
+				{
+					rv = nullptr;
+				}
+			}
+		}
+#endif
 	}
 	else
 	{
@@ -265,6 +333,43 @@ SDL_RWops *FileRecord::getRWopsReadAll() const
 std::unique_ptr<std::istream> FileRecord::getIStream() const
 {
 	if (zip != NULL) {
+#ifdef __vita__
+		if (!data_buffer)
+		{
+			data_buffer = new char[BUFFER_SIZE];
+		}
+
+		mz_zip_archive_file_stat zip_stat;
+		memset(&zip_stat, 0, sizeof(mz_zip_archive_file_stat));
+		if (mz_zip_reader_file_stat((mz_zip_archive *)zip, findex, &zip_stat))
+		{
+			if ((BUFFER_SIZE >= zip_stat.m_uncomp_size) && mz_zip_reader_extract_to_mem((mz_zip_archive *)zip, findex, data_buffer, zip_stat.m_uncomp_size, 0))
+			{
+				return std::unique_ptr<std::istream>(new StreamData(RawData{data_buffer, static_cast<std::size_t>(zip_stat.m_uncomp_size), [](void*){}}));
+			}
+		}
+
+		// fallback to temporary file if mem extraction failed (file was too big probably)
+		if (mz_zip_reader_extract_to_file((mz_zip_archive *)zip, findex, TEMP_FILE_PATH, 0))
+		{
+			SDL_RWops *rwops = SDL_RWFromFile(TEMP_FILE_PATH, "rb");
+			if (!rwops) {
+				std::string err = "FileRecord::getIStream(): failed to decompress " + fullpath + ": " + SDL_GetError();
+				Log(LOG_ERROR) << err;
+				throw Exception(err);
+			}
+
+			size_t size;
+			char *data = (char *)SDL_LoadFile_RW(rwops, &size, SDL_TRUE);
+			if (data == NULL) {
+				std::string err = "Failed to read " + fullpath + ": " + SDL_GetError();
+				Log(LOG_ERROR) << err;
+				throw Exception(err);
+			}
+
+			return std::unique_ptr<std::istream>(new StreamData(RawData{data, size, SDL_free}));
+		}
+#endif
 		size_t size;
 		void *data = mz_zip_reader_extract_to_heap((mz_zip_archive *)zip, findex, &size, 0);
 		if (data == NULL) {
@@ -719,6 +824,17 @@ void clear(bool clearOnly, bool embeddedOnly) {
 			TheVFS.dump(Logger().get(LOG_VERBOSE), "\nFileMap::clear():", Options::oxceListVFSContents);
 		}
 	}
+
+#ifdef __vita__
+/*
+	remove(TEMP_FILE_PATH);
+
+	if (data_buffer)
+	{
+		delete[] data_buffer;
+	}
+*/
+#endif
 }
 /**
  * This maps mods and their dependencies.

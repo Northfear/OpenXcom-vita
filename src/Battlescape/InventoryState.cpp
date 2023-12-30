@@ -1607,7 +1607,11 @@ void InventoryState::refreshMouse()
 {
 	// send a mouse motion event to refresh any hover actions
 	int x, y;
+#ifdef __vita__
+	SDL_GetMouseState_Vita(&x, &y);
+#else
 	SDL_GetMouseState(&x, &y);
+#endif
 	SDL_WarpMouse(x+1, y);
 
 	// move the mouse back to avoid cursor creep
